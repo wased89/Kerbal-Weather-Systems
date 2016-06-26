@@ -8,6 +8,7 @@ using KerbalWeatherSystems;
 using Simulation;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Resources;
 
 namespace Overlay
 {
