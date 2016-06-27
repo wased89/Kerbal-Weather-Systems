@@ -21,7 +21,7 @@ namespace Overlay
         private Dictionary<CelestialBody, double> bodyRadii = new Dictionary<CelestialBody, double>();
         private double bodyradius = 1.012;
         private CelestialBody body;
-        private static Func<Cell, float> heightRatio;
+        private static Func<Cell, double> heightRatio;
         private BoundsMap bounds;
         private static PlanetData PD;
         private static int mouseGUID;
@@ -548,9 +548,9 @@ namespace Overlay
 
             return null;
         }
-        private Func<Cell, float> getHeightRatioMap(CelestialBody body)
+        private Func<Cell, double> getHeightRatioMap(CelestialBody body)
         {
-            Func<Cell, float> heightRatioAt;
+            Func<Cell, double> heightRatioAt;
 
             try
             {
