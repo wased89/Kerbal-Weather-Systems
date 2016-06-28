@@ -1894,13 +1894,14 @@ namespace Simulation
                     file.WriteLine("Soil  ");
                     file.WriteLine();
 
-                    file.WriteLine("Layer " + "   ∇P (all neighbors)");
+                    file.WriteLine("Layer " + "   ∇P (all neighbors)" + "  ⇩ neighbor index ⇩  " + "                           tensStr (x,y,z)     " + "             rotrStr (x,y,z)     ");
                     file.Write("         ");
                     foreach (Cell neighbor in cell.GetNeighbors(PD.gridLevel))
                     {
                         file.Write(String.Format("{0:00000}", neighbor.Index) + "     ");
                     }
-                    file.WriteLine("<- neighbor index");
+                    // file.WriteLine("<- neighbor index");
+                    file.WriteLine();
                     file.WriteLine("Strat ");
                     for (int i = layerCount - 1; i >= 0; i--)
                     {
@@ -1909,11 +1910,19 @@ namespace Simulation
                         {
                             file.Write(String.Format("{0:+0.000000;-0.000000}", DP[i][n]) + " ");
                         }
+                        file.Write("  (");
+                        file.Write(String.Format("{0:+0.00000;-0.00000}", tensStr[i].x) + ", ");
+                        file.Write(String.Format("{0:+0.00000;-0.00000}", tensStr[i].y) + ", ");
+                        file.Write(String.Format("{0:+0.00000;-0.00000}", tensStr[i].z) + ") ");
+                        file.Write("  (");
+                        file.Write(String.Format("{0:+0.00000;-0.00000}", rotrStr[i].x) + ", ");
+                        file.Write(String.Format("{0:+0.00000;-0.00000}", rotrStr[i].y) + ", ");
+                        file.Write(String.Format("{0:+0.00000;-0.00000}", rotrStr[i].z) + ")");
                         file.WriteLine();
                     }
                     file.WriteLine();
 
-                    file.WriteLine("Layer " + "   Divg " + "  WsDiv  " + "       Ws_N " + "      Ws_E " + "    Total_N " + "   Total_E " + "   buoyancy " + "    DP_V   " + "   tensStr.y " + "      WindVector (x,y,z)     " + " WindSpeed " + " V_disp%");
+                    file.WriteLine("Layer " + "   Divg " + "  WsDiv  " + "       Ws_N " + "      Ws_E " + "    Total_N " + "   Total_E " + "   buoyancy " + "    DP_V   " + "         WindVector (x,y,z)     " + "  WindSpeed " + " V_disp%");
                     file.WriteLine("Strat ");
                     for (int i = layerCount - 1; i >= 0; i--)
                     {
@@ -1927,7 +1936,7 @@ namespace Simulation
                         file.Write(String.Format("{0:+00.000000;-00.000000}", Total_E[i]) + " ");
                         file.Write(String.Format("{0:+000.000000;-000.000000}", buoyancy[i]) + " ");
                         file.Write(String.Format("{0:+000.000000;-000.000000}", DP_V[i]) + " ");
-                        file.Write(String.Format("{0:+00.000000;-00.000000}", tensStr[i].y) + " ");
+                        // file.Write(String.Format("{0:+00.000000;-00.000000}", tensStr[i].y) + " ");
                         file.Write("(");
                         file.Write(String.Format("{0:+000.000;-000.000}", wind.x) + ", ");
                         file.Write(String.Format("{0:+000.000;-000.000}", wind.y) + ", ");
