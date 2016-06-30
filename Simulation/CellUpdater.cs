@@ -986,6 +986,8 @@ namespace Simulation
                             / (PD.SHF * PD.LiveMap[layer - 1][neighbor].temperature)));  
                     }
                     */
+                    Vector3 cellDirUpVector = Vector3.Project(neighbor.Position - cell.Position, cell.Position);
+                    Vector3 cellNeighborDirVector = (neighbor.Position - cell.Position);
                     Vector3 cellDirVector = (neighbor.Position - cell.Position)-Vector3.Project(neighbor.Position-cell.Position, cell.Position); //cell to neighbor
                     //         horizontal =  total vector(horizontal, vertical) - (0, vertical) because the project gives us a vector from the given vector that lines up 
                     //with the supplied vector; cell.Position
@@ -993,6 +995,9 @@ namespace Simulation
                     //note, need to project this so that it is flat and not pointed into the earth: DONE
                     //also note for self: how far is A from B relative to B.
                     //also also note for self: the projection method soon to come gets fucked with changing cell height or something. Will find fix in time.
+                    
+                    Vector3 DFTVector = Vector3.Project(new Vector3(-0.5f, 0.866f, 0f), new Vector3(0.866f, 0.5f, 0f));
+
                     Vector3 cellWindHor = wCell.windVector - Vector3.Project(wCell.windVector, cell.Position);
                     Vector3 neighborWindHor = wCellNeighbor.windVector - Vector3.Project(wCellNeighbor.windVector, neighbor.Position);
 
@@ -1037,8 +1042,8 @@ namespace Simulation
                 totalWindVector[layer] = wCell.windVector; //need to turn this into a velocity vector, probably for when total vector comes together to include vertical
                 // windspeed increase due to Coriolis forces
                 //Vector3d bodyAngularVelocity = PD.body.angularVelocity;
-                Vector3 CoriolisVector = 2 * Vector3.Cross(totalWindVector[layer], PD.body.angularVelocity) * (float)DeltaTime;
-                float Cor_N = (float)(2 * Total_E[layer] * PD.body.angularV * Math.Sin(latitude * Mathf.Deg2Rad) * DeltaTime);  
+                Vector3 CoriolisVector = 2 * totalWindVector[layer] * (float)PD.body.angularV * Mathf.Sin(latitude*Mathf.Deg2Rad) * (float)DeltaTime;
+                float Cor_N = (float)(2 * Total_E[layer] * PD.body.angularV * Math.Sin(latitude * Mathf.Deg2Rad) * DeltaTime);
                 float Cor_E = (float)(2 * Total_N[layer] * PD.body.angularV * Math.Sin(latitude * Mathf.Deg2Rad) * DeltaTime);
 
                 // windspeed increase due to air viscosity (decrease, but takes sign opposite to the current wind)
@@ -1210,7 +1215,7 @@ namespace Simulation
                     double error = 0;
                     float D_dryStrato = (float)(WeatherFunctions.VdW(PD.atmoShit, PD.LiveStratoMap[0][cell].pressure, PD.LiveStratoMap[0][cell].temperature, out error));
                     dynPressureAbove = (wsVVector.magnitude < 0 ? (0.5f * D_dryStrato * wsVVector.sqrMagnitude) : 0);  // dynamic pressure due to wind with layer above
-                    double D_variance = TimeChargeV > 0 ? 1.0f : (float)((D_wet[layer] - D_dryStrato * TimeChargeV) / D_wet[layer]);
+                    double D_variance = TimeChargeV > 0 ? 1.0 : ((D_wet[layer] - D_dryStrato * TimeChargeV) / D_wet[layer]);
                     if (D_variance < 0)
                     {
                         KWSerror = true;

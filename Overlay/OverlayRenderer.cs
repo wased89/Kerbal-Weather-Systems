@@ -12,7 +12,7 @@ namespace Overlay
         internal static Mesh mesh;
 
         private int gridLevel = 0;
-        private Func<Cell, float> heightMap = c => 1;
+        private Func<Cell, double> heightMap = c => 1;
         private float radiusMultiplier = 1;
         private Transform target = null;
 
@@ -48,12 +48,12 @@ namespace Overlay
             SetGridLevelAndHeightMap(gridLevel, heightMap);
         }
 
-        public void SetHeightMap(Func<Cell, float> heightMap)
+        public void SetHeightMap(Func<Cell, double> heightMap)
         {
             SetGridLevelAndHeightMap(gridLevel, heightMap);
         }
 
-        public void SetGridLevelAndHeightMap(int gridLevel, Func<Cell, float> heightMap)
+        public void SetGridLevelAndHeightMap(int gridLevel, Func<Cell, double> heightMap)
         {
             if (gridLevel < 0) { throw new ArgumentOutOfRangeException("gridLevel"); }
             if (heightMap == null) { throw new ArgumentNullException("heightMap"); }
