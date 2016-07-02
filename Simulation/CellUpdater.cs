@@ -442,7 +442,7 @@ namespace Simulation
             
             for (int AltLayer = stratoCount - 1; AltLayer >= 0; AltLayer--) //assumed 1 strato layer currently
             {
-                thermalCapStrato[AltLayer] = PD.atmoShit.specificHeatGas * PD.LiveMap[0][cell].pressure * LFStrato[AltLayer] / G / WeatherSettings.SD.AtmoThCapMult;
+                thermalCapStrato[AltLayer] = PD.atmoShit.specificHeatGas * PD.LiveMap[0][cell].pressure * LFStrato[AltLayer] / G * WeatherSettings.SD.AtmoThCapMult;
 
                 SWRStrato[AltLayer] = 0;
                 SWAStrato[AltLayer] = SWT * LFStrato[AltLayer] * PD.atmoShit.SWA;
@@ -1222,13 +1222,13 @@ namespace Simulation
                     if (D_variance < 0)
                     {
                         KWSerror = true;
-                        Logger("D_Variance went negative" + " @ cell: " + cell.Index);
+                        Logger("D_Variance went negative @ cell: " + cell.Index);
                     }
                     staticPressureChange += (float)(Math.Pow(D_variance, 1/k_ad) - 1.0f);  // static pressure change (%) due to wind with layer above
                     if (float.IsNaN(staticPressureChange))
                     {
                         KWSerror = true;
-                        Logger("Static Pressure Change is NaN" + " @ cell: " + cell.Index);
+                        Logger("Static Pressure Change is NaN @ cell: " + cell.Index);
                     }
                 }
                 // go with this layer
@@ -1238,7 +1238,12 @@ namespace Simulation
                 if (float.IsNaN(dynPressure[layer]))
                 {
                     KWSerror = true;
-                    Logger(" dynamicPressure went NaN" + " @ cell: " + cell.Index);
+                    Logger(" dynamicPressure went NaN @ cell: " + cell.Index);
+                }
+                if(Math.Abs(dynPressure[layer]) > wCellLive.pressure)
+                {
+                    KWSerror = true;
+                    Logger(" dynamic pressure too large! @ cell: " + cell.Index);
                 }
                 
                 #endregion
