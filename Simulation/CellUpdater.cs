@@ -180,6 +180,7 @@ namespace Simulation
 
             double DeltaTime = WeatherFunctions.GetDeltaTime(PD.index);  
             double DeltaAltitude = WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell);
+            double DeltaDistance_Avg = 0.0;
 
             {
                 int neighborIndex = 0;
@@ -950,17 +951,21 @@ namespace Simulation
             for (int layer = 0; layer < layerCount; layer++)
             {
                 WeatherCell wCell = PD.LiveMap[layer][cell];
+
+                // Horizontal wind
                 wsDiv[layer] = 0;
                 int n = 0;
+                DeltaDistance_Avg = 0.0;
                 float Pressure_eq = 0;
+                float cell_Z = WeatherFunctions.GetCellAltitude(PD.index, layer, cell);
                 DP[layer] = new float[cell.GetNeighbors(PD.gridLevel).ToList().Count];
                 foreach (Cell neighbor in cell.GetNeighbors(PD.gridLevel))
                 {
                     WeatherCell wCellNeighbor = PD.LiveMap[layer][neighbor];
                     double DeltaDistance = WeatherFunctions.GetDistanceBetweenCells(PD.index, cell, neighbor, WeatherFunctions.GetCellAltitude(PD.index, layer, cell));
+                    DeltaDistance_Avg += DeltaDistance;
                     double CosDir = Math.Cos(direction[n]);
                     double SinDir = Math.Sin(direction[n]);
-                    float cell_Z = WeatherFunctions.GetCellAltitude(PD.index, layer, cell);
                     float neigh_Z = WeatherFunctions.GetCellAltitude(PD.index, layer, neighbor);
                     Pressure_eq = 0;
                     if (layer == 0)
@@ -973,7 +978,7 @@ namespace Simulation
                             / (PD.SHF * PD.LiveMap[layer - 1][neighbor].temperature)));  // all pressures need be reduced at the same altitude (that of the current cell, layer) before comparing them
                     }
                     float deltaPressure = (float)((wCell.pressure - Pressure_eq) / DeltaDistance);
-                    // DP.Add(deltaPressure);
+
                     DP[layer][n] = deltaPressure;
                     Divg[layer] += deltaPressure;
 
@@ -993,6 +998,7 @@ namespace Simulation
                 Divg[layer] /= n;
                 wsN[layer] /= n;
                 wsE[layer] /= n;
+                DeltaDistance_Avg /= n;
 
                 // tensor components on the x-z local plane due to airflow from adjacent cells
                 tensStr[layer].x *= PD.LiveMap[layer][cell].windVector.x * DeltaTime / n;
@@ -1000,20 +1006,16 @@ namespace Simulation
                 rotrStr[layer].x *= PD.LiveMap[layer][cell].windVector.x * DeltaTime / n;
                 rotrStr[layer].z *= PD.LiveMap[layer][cell].windVector.z * DeltaTime / n;
 
-                // float DPInt = Mathf.Sqrt((wsN[layer] * wsN[layer]) + (wsE[layer] * wsE[layer]));
-
-                // float DPacc = DPInt / D_wet[layer];
-
-                float Mu = Suth_B / (wCell.temperature + Suth_S) * Mathf.Pow(wCell.temperature, 3f / 2f);
 
                 Total_N[layer] = wCell.windVector.x;
                 Total_E[layer] = wCell.windVector.z;
 
                 // windspeed increase due to Coriolis forces
                 float Cor_N = (float)(2 * Total_E[layer] * PD.body.angularV * Mathf.Sin(latitude * Mathf.Deg2Rad) * DeltaTime);  
-                float Cor_E = (float)(2 * Total_N[layer] * PD.body.angularV * Mathf.Sin(latitude * Mathf.Deg2Rad) * DeltaTime);
-                
+                float Cor_E = (float)(-2 * Total_N[layer] * PD.body.angularV * Mathf.Sin(latitude * Mathf.Deg2Rad) * DeltaTime);
+
                 // windspeed increase due to air viscosity (decrease, but takes sign opposite to the current wind)
+                float Mu = Suth_B / (wCell.temperature + Suth_S) * Mathf.Pow(wCell.temperature, 3f / 2f);
                 float Mu_dec_N = 0;  
                 float Mu_dec_E = 0;
                 if (layer == 0)
@@ -1034,6 +1036,7 @@ namespace Simulation
                 Total_N[layer] += W_N_P + Cor_N + Mu_dec_N + (float)tensStr[layer].x - (float)rotrStr[layer].z;
                 Total_E[layer] += W_E_P + Cor_E + Mu_dec_E + (float)tensStr[layer].z + (float)rotrStr[layer].x;
 
+                // vertical wind
                 // Buoyancy
                 WeatherCell wCellLive = PD.LiveMap[layer][cell];
                 if (layer == 0)
@@ -1079,7 +1082,21 @@ namespace Simulation
                         / PD.LiveMap[layer + 1][cell].pressure + D_wet[layer]) / 2 / DeltaAltitude);
                 }
 
+                Ws_V_ana[layer] = 0;  // TODO: here is where to compute anabatic wind (after orography)
+                // float Mu = Suth_B / (wCell.temperature + Suth_S) * Mathf.Pow(wCell.temperature, 3f / 2f);
+                double wsVdiff = ((layer < layerCount - 1 ? (wCellLive.windVector.y - PD.LiveMap[layer + 1][cell].windVector.y) : 0) +
+                    (layer > 0 ? (wCellLive.windVector.y - PD.LiveMap[layer - 1][cell].windVector.y) : 0));
+                tensStr[layer].y = Math.Abs(wCellLive.windVector.y) / DeltaAltitude * wsVdiff; //wind * tensor gradient
+                double TCtens = (wsVdiff == 0) ? 0 : (1.0 - Math.Exp(-Math.Abs(DeltaTime * tensStr[layer].y / wCellLive.windVector.y)));
+                // float wsV = (float)(wCellLive.windVector.y + (buoyancy[layer] + DP_V[layer] - (wCellLive.windVector.y * Mu / D_wet[layer]) - tensStr[layer].y) * DeltaTime/2 + Ws_V_ana[layer]);
+                float wsV = (float)(wCellLive.windVector.y + (buoyancy[layer] + DP_V[layer] - (wCellLive.windVector.y
+                    * Mu / D_wet[layer])) * DeltaTime / 2 - wsVdiff / 2 * TCtens + Ws_V_ana[layer]);
+
+                WeatherCell wCellBuffer = PD.BufferMap[layer][cell];
+                wCellBuffer.windVector = new Vector3(Total_N[layer], wsV, Total_E[layer]);
+                PD.BufferMap[layer][cell] = wCellBuffer;
             }
+            #endregion
 
             //calc the vertical divergence
             /*
@@ -1097,28 +1114,16 @@ namespace Simulation
             }
             float ws_V_div = K_DIVG * posFactor;
             */
-
+            #region dynamicPressure
             for (int layer = 0; layer < layerCount; layer++)
             {
-                WeatherCell wCell = PD.BufferMap[layer][cell];
-                WeatherCell wCellLive = PD.LiveMap[layer][cell];
-                Ws_V_ana[layer] = 0;  // TODO: here is where to compute anabatic wind (after orography)
-                float Mu = Suth_B / (wCell.temperature + Suth_S) * Mathf.Pow(wCell.temperature, 3f / 2f);
-                double wsVdiff = ((layer < layerCount - 1 ? (wCellLive.windVector.y - PD.LiveMap[layer + 1][cell].windVector.y) : 0) +
-                    (layer > 0 ? (wCellLive.windVector.y - PD.LiveMap[layer - 1][cell].windVector.y) : 0));
-                tensStr[layer].y = Math.Abs(wCellLive.windVector.y) / DeltaAltitude * wsVdiff; //wind * tensor gradient
-                double TCtens = (wsVdiff == 0) ? 0 : (1.0 - Math.Exp(-Math.Abs(DeltaTime * tensStr[layer].y / wCellLive.windVector.y)));
-                // float wsV = (float)(wCellLive.windVector.y + (buoyancy[layer] + DP_V[layer] - (wCellLive.windVector.y * Mu / D_wet[layer]) - tensStr[layer].y) * DeltaTime/2 + Ws_V_ana[layer]);
-                float wsV = (float)(wCellLive.windVector.y + (buoyancy[layer] + DP_V[layer] - (wCellLive.windVector.y
-                    * Mu / D_wet[layer])) * DeltaTime / 2 - wsVdiff / 2 * TCtens + Ws_V_ana[layer]);
-
-                #region dynamicPressure
+                WeatherCell wCellBuffer = PD.BufferMap[layer][cell];
+                float wsV = wCellBuffer.windVector.y;
                 float staticPressureChange = 0;
                 float dynPressureAbove = 0;
                 float dynPressureBelow = 0;
                 float dynPressureLayer = 0;
 
-                double DeltaDistance = WeatherFunctions.GetDistanceBetweenCells(PD.index, cell, cell.GetNeighbors(PD.gridLevel).First(), WeatherFunctions.GetCellAltitude(PD.index, layer, cell));
                 if(DeltaAltitude == 0 || double.IsNaN(DeltaAltitude))
                 {
                     KWSerror = true;
@@ -1135,14 +1140,16 @@ namespace Simulation
                     Logger("wsV went wrong" + " @ cell: " + cell.Index);
                 }
                 double TimeChargeV = Math.Sign(wsV)*(1.0 - Math.Exp(-Math.Abs(DeltaTime * wsV / DeltaAltitude)));  // needed to stabilize V_disp from variance in DeltaTime
-                double TimeChargeH = Math.Sign(wsDiv[layer])*(1.0 - Math.Exp((float)-Math.Abs(DeltaTime * wsDiv[layer] / DeltaDistance)));  // needed to stabilize H_disp from variance in DeltaTime
+                double TimeChargeH = Math.Sign(wsDiv[layer])*(1.0 - Math.Exp((float)-Math.Abs(DeltaTime * wsDiv[layer] / DeltaDistance_Avg)));  // needed to stabilize H_disp from variance in DeltaTime
                 
                 dynPressure[layer] = (float)(0.5f * D_wet[layer] * -wsDiv[layer] * Math.Abs(wsDiv[layer])); // horizontal dynamicPressure
                 staticPressureChange = (float)(-TimeChargeH);  // static pressure change (%) due to horizontal flow
                 
                 if (layer > 0)  // go with layer below
                 {
-                    dynPressureBelow = wsV>0 ? 0.5f * D_wet[layer-1] * wsV * wsV: 0;  //TODO: for even more accuracy, use average wsV with layer below
+                    float wsV_below = PD.BufferMap[layer - 1][cell].windVector.y;
+                    float wsV_avg = (wsV + wsV_below) / 2.0f;
+                    dynPressureBelow = wsV_avg>0 ? 0.5f * D_wet[layer - 1] * wsV_avg * wsV_avg : 0; // dynamic pressure due to wind with layer below
                     double D_variance = TimeChargeV < 0 ? 1.0f : (float)((D_wet[layer] + D_wet[layer - 1] * TimeChargeV) / D_wet[layer]);
                     if (D_variance < 0)
                     {
@@ -1158,7 +1165,9 @@ namespace Simulation
                 }
                 if (layer < layerCount-1)  // go with layer above
                 {
-                    dynPressureAbove = (wsV<0 ? (0.5f * D_wet[layer + 1] * wsV * wsV) : 0);  // dynamic pressure due to wind with layer above
+                    float wsV_above = PD.BufferMap[layer + 1][cell].windVector.y;
+                    float wsV_avg = (wsV + wsV_above) / 2.0f;
+                    dynPressureAbove = (wsV_avg<0 ? (0.5f * D_wet[layer + 1] * wsV_avg * wsV_avg) : 0);  // dynamic pressure due to wind with layer above
                     double D_variance = TimeChargeV > 0 ? 1.0f : (float)((D_wet[layer] - D_wet[layer + 1] * TimeChargeV) / D_wet[layer]);
                     if (D_variance < 0)
                     {
@@ -1192,7 +1201,7 @@ namespace Simulation
                 }
                 // go with this layer
                 dynPressureLayer = (wsV > 0 || layer > 0) ? (0.5f * D_wet[layer] * wsV * wsV) : 0;
-                staticPressureChange = (float)(wCellLive.pressure * (staticPressureChange - ((wsV > 0 || layer > 0) ? Math.Abs(TimeChargeV) : 0)) / DeltaTime);
+                staticPressureChange = (float)(PD.LiveMap[layer][cell].pressure * (staticPressureChange - ((wsV > 0 || layer > 0) ? Math.Abs(TimeChargeV) : 0)) / DeltaTime);
                 dynPressure[layer] += dynPressureAbove + dynPressureBelow - dynPressureLayer + staticPressureChange;
                 if (float.IsNaN(dynPressure[layer]))
                 {
@@ -1200,8 +1209,6 @@ namespace Simulation
                     Logger(" dynamicPressure went NaN" + " @ cell: " + cell.Index);
                 }
                 
-                #endregion
-
                 //calc V_disp
                 float V_disp_limit = (float)(TimeChargeV / staticPressureChange * (wsV < 0 ? dynPressureAbove : dynPressureBelow));
 
@@ -1213,8 +1220,6 @@ namespace Simulation
                     Logger("V_disp is NaN" + " @ cell: " + cell.Index);
                 }
 
-                wCell.windVector = new Vector3(Total_N[layer], wsV, Total_E[layer]); //new Vector3(Total_N[layer], wsV, Total_E[layer]);
-                PD.BufferMap[layer][cell] = wCell;
             }
             #endregion
 
