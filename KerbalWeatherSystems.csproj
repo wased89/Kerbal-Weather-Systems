@@ -75,7 +75,6 @@
     <Compile Include="Database\CloudShit.cs" />
     <Compile Include="Database\DewShit.cs" />
     <Compile Include="Database\PlanetData.cs" />
-    <Compile Include="Database\Polys.cs" />
     <Compile Include="Database\SoilCell.cs" />
     <Compile Include="Database\WeatherDatabase.cs" />
     <Compile Include="HeadMaster.cs" />

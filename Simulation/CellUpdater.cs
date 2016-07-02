@@ -442,7 +442,7 @@ namespace Simulation
             
             for (int AltLayer = stratoCount - 1; AltLayer >= 0; AltLayer--) //assumed 1 strato layer currently
             {
-                thermalCapStrato[AltLayer] = PD.atmoShit.specificHeatGas * PD.LiveMap[0][cell].pressure * LFStrato[AltLayer] / G / WeatherSettings.SD.AtmoThCapMult;
+                thermalCapStrato[AltLayer] = PD.atmoShit.specificHeatGas * PD.LiveMap[0][cell].pressure * LFStrato[AltLayer] / G * WeatherSettings.SD.AtmoThCapMult;
 
                 SWRStrato[AltLayer] = 0;
                 SWAStrato[AltLayer] = SWT * LFStrato[AltLayer] * PD.atmoShit.SWA;
@@ -458,7 +458,7 @@ namespace Simulation
                 WeatherCell wCellLive = PD.LiveMap[AltLayer][cell];
 
                 thermalCap[AltLayer] = (PD.atmoShit.specificHeatGas * (1 - wCellLive.relativeHumidity) +
-                        PD.dewShit.cg * wCellLive.relativeHumidity) * PD.LiveMap[0][cell].pressure * LF[AltLayer] / G / WeatherSettings.SD.AtmoThCapMult;
+                        PD.dewShit.cg * wCellLive.relativeHumidity) * PD.LiveMap[0][cell].pressure * LF[AltLayer] / G * WeatherSettings.SD.AtmoThCapMult;
                 if (AltLayer == layerCount - 1)
                 {
                     SWR[AltLayer] = SWXStrato[0] * Cl_SWR[AltLayer] * ReflFunc[AltLayer];
@@ -480,7 +480,7 @@ namespace Simulation
             }
             //Soil thermal layer calc
             {
-                thermalCapSoil = PD.biomeDatas[WeatherFunctions.GetBiome(PD.index, cell)].SoilThermalCap / WeatherSettings.SD.SoilThCapMult;
+                thermalCapSoil = PD.biomeDatas[WeatherFunctions.GetBiome(PD.index, cell)].SoilThermalCap * WeatherSettings.SD.SoilThCapMult;
                 // LiquidSoil Reflection (Fresnel Law, incident light is partly reflected out in air, partly refracted within water)
                 SoilReflection = 0f;
                 if (PD.biomeDatas[WeatherFunctions.GetBiome(PD.index, cell)].FLC > 0.9) // biome must be very shiny for reflection, liquid surfaces do
