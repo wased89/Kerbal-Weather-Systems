@@ -6,6 +6,10 @@ using System.IO;
 using Database;
 using KerbalWeatherSystems;
 using Simulation;
+<<<<<<< HEAD
+=======
+using Resources;
+>>>>>>> diomedea/master
 using UnityEngine;
 using UnityEngine.Rendering;
 using Resources;
