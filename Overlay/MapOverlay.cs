@@ -6,8 +6,7 @@ using System.IO;
 using Database;
 using KerbalWeatherSystems;
 using Simulation;
-using KerbalWeatherSystems.Overlay;
-using KerbalWeatherSystems.Resources;
+using Resources;
 using UnityEngine;
 using UnityEngine.Rendering;
 

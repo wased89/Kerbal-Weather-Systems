@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace KerbalWeatherSystems.Overlay
+namespace Resources
 {
     public class ResourceDefinition
     {

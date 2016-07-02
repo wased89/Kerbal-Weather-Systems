@@ -18,7 +18,6 @@ namespace Database
     public class WeatherDatabase
     {
         internal static List<PlanetData> PlanetaryData = new List<PlanetData>();
-        public static Polys polys = new Polys();
         public static int AddPlantaryData(PlanetData PD)
         {
             PlanetaryData.Add(PD);

@@ -3,7 +3,7 @@ using Database;
 using GeodesicGrid;
 using UnityEngine;
 
-namespace KerbalWeatherSystems.Resources
+namespace Resources
 {
     public class BodyResourceData
     {

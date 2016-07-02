@@ -4,7 +4,7 @@ using Proto;
 using ProtoBuf;
 using UnityEngine;
 
-namespace KerbalWeatherSystems
+namespace Database
 {
     [ProtoContract]
     public struct WeatherCell

@@ -7,9 +7,10 @@ using Database;
 using GeodesicGrid;
 using Overlay;
 using UnityEngine;
+using KerbalWeatherSystems;
 using GUI = UnityEngine.GUI;
 
-namespace KerbalWeatherSystems.WeatherGUI
+namespace WeatherGUI
 {
     public class WeatherGUI : MonoBehaviour
     {
