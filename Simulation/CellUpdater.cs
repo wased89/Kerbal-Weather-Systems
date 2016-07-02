@@ -988,7 +988,7 @@ namespace Simulation
                     */
                     Vector3 cellDirUpVector = Vector3.Project(neighbor.Position - cell.Position, cell.Position);
                     Vector3 cellNeighborDirVector = (neighbor.Position - cell.Position);
-                    Vector3 cellDirVector = (neighbor.Position - cell.Position)-Vector3.Project(neighbor.Position-cell.Position, cell.Position); //cell to neighbor
+                    Vector3 cellDirVector = ((neighbor.Position - cell.Position)-Vector3.Project(neighbor.Position-cell.Position, cell.Position))*PD.body.Radius; //cell to neighbor
                     //         horizontal =  total vector(horizontal, vertical) - (0, vertical) because the project gives us a vector from the given vector that lines up 
                     //with the supplied vector; cell.Position
                     //Vector3 neighborDirVector = (cell.Position - neighbor.Position) - Vector3.Project(cell.Position - neighbor.Position, cell.Position); //neighbor to cell
@@ -996,24 +996,25 @@ namespace Simulation
                     //also note for self: how far is A from B relative to B.
                     //also also note for self: the projection method soon to come gets fucked with changing cell height or something. Will find fix in time.
                     
-                    Vector3 DFTVector = Vector3.Project(new Vector3(-0.5f, 0.866f, 0f), new Vector3(0.866f, 0.5f, 0f));
 
                     Vector3 cellWindHor = wCell.windVector - Vector3.Project(wCell.windVector, cell.Position);
                     Vector3 neighborWindHor = wCellNeighbor.windVector - Vector3.Project(wCellNeighbor.windVector, neighbor.Position);
 
                     float myWindDirDot = Vector3.Dot(cellWindHor, cellDirVector);
                     float neighborWindDirDot = Vector3.Dot(neighborWindHor, -cellDirVector);
-                    double deltaPressure = (wCell.pressure - Pressure_eq)/cellDirVector.magnitude;
+                    double deltaPressure = wCell.pressure - Pressure_eq;
                     
 
                     DP[layer][n] = deltaPressure;
                     Divg[layer] += deltaPressure;
-                    
+
                     //double CosDir = Math.Cos(direction[n]*Mathf.Deg2Rad);
                     //double SinDir = Math.Sin(direction[n]*Mathf.Deg2Rad);
 
 
-                    wsPressureVector += cellDirVector * (float)deltaPressure;
+                    wsPressureVector += deltaPressure == 0 ? Vector3.zero :
+                        ((float)deltaPressure * cellDirVector) / cellDirVector.sqrMagnitude;
+
                     //wsN[layer] += (float)(deltaPressure * CosDir);
                     //wsE[layer] += (float)(deltaPressure * SinDir);
 
@@ -1096,7 +1097,6 @@ namespace Simulation
                         * PD.LiveMap[layer-1][cell].temperature/wCell.temperature - 2* D_wet[layer]);
                 }
                 buoyancy[layer] *= G / D_wet[layer] / DeltaAltitude;
-
                 
 
             }
@@ -1107,7 +1107,7 @@ namespace Simulation
                 WeatherCell wCellLive = PD.LiveMap[layer][cell];
 
                 //get the vertical vector component of the wind
-                Vector3 cellWindUp = Vector3.Project(wCell.windVector, cell.Position);
+                Vector3 cellWindUp = Vector3.Project(wCellLive.windVector, cell.Position);
 
                 Ws_V_ana[layer] = 0;  // TODO: here is where to compute anabatic wind (after orography)
                 double Mu = Suth_B / (wCell.temperature + Suth_S) * Math.Pow(wCell.temperature, 3d / 2d);
@@ -1154,13 +1154,12 @@ namespace Simulation
                 float dynPressureLayer = 0;
 
                 double DeltaDistance = 0;
-                Vector3 dDistance = new Vector3();
                 foreach(Cell neighbor in cell.GetNeighbors(PD.gridLevel))
                 {
                     DeltaDistance += (cell.Position - neighbor.Position).magnitude;
                 }
                 DeltaDistance /= cell.GetNeighbors().ToList().Count;
-                
+                DeltaDistance *= PD.body.Radius;
                 //double DeltaDistance = WeatherFunctions.GetDistanceBetweenCells(PD.index, cell, cell.GetNeighbors(PD.gridLevel).First(), WeatherFunctions.GetCellAltitude(PD.index, layer, cell));
                 if(DeltaAltitude == 0 || double.IsNaN(DeltaAltitude))
                 {
@@ -1253,6 +1252,7 @@ namespace Simulation
 
                 wCell.windVector = totalWindVector[layer] + wsVVector; //new Vector3(Total_N[layer], wsV, Total_E[layer]);
                 PD.BufferMap[layer][cell] = wCell;
+
             }
             #endregion
 
@@ -1301,7 +1301,7 @@ namespace Simulation
                     DeltaDistance += (cell.Position-neighbor.Position).magnitude;
                 }
                 DeltaDistance /= cell.GetNeighbors(PD.gridLevel).ToList().Count;
-
+                DeltaDistance *= PD.body.Radius;
                 H_adv_S[layer] *= (float)(DeltaTime
                     / DeltaDistance);
 
@@ -1401,8 +1401,10 @@ namespace Simulation
                     DeltaDistance += (cell.Position- neighbor.Position).magnitude;
                 }
                 DeltaDistance /= cell.GetNeighbors(PD.gridLevel).ToList().Count;
+                DeltaDistance *= PD.body.Radius;
+
                 T_adv_S[layer] *= (float)(DeltaTime
-                    / (WeatherFunctions.GetDistanceBetweenCells(PD.index, cell, cell.GetNeighbors(PD.gridLevel).First(), WeatherFunctions.GetCellAltitude(PD.index, layer, cell))));
+                    / DeltaDistance);
 
                 T_disp[layer] = 0;
 
