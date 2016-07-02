@@ -53,6 +53,14 @@ namespace Database
             file.WriteLine(line);
             line = "MWwindV = " + SD.MWwindV;
             file.WriteLine(line);
+            line = "SoilThCapMult = " + SD.SoilThCapMult;
+            file.WriteLine(line);
+            line = "AtmoThCapMult = " + SD.AtmoThCapMult;
+            file.WriteLine(line);
+            line = "SoilIRGFactor = " + SD.SoilIRGFactor;
+            file.WriteLine(line);
+            line = "AtmoIRGFactor = " + SD.AtmoIRGFactor;
+            file.WriteLine(line);
             Logger("Settings saved");
         }
 
@@ -178,6 +186,30 @@ namespace Database
                     SD.MWwindV = bool.Parse(line);
                     continue;
                 }
+                if (line.StartsWith("SoilThCapMult"))
+                {
+                    line = line.Substring(line.IndexOf("=") + 2);
+                    SD.SoilThCapMult = float.Parse(line);
+                    continue;
+                }
+                if (line.StartsWith("AtmoThCapMult"))
+                {
+                    line = line.Substring(line.IndexOf("=") + 2);
+                    SD.AtmoThCapMult = float.Parse(line);
+                    continue;
+                }
+                if (line.StartsWith("SoilIRGFactor"))
+                {
+                    line = line.Substring(line.IndexOf("=") + 2);
+                    SD.SoilIRGFactor = float.Parse(line);
+                    continue;
+                }
+                if (line.StartsWith("AtmoIRGFactor"))
+                {
+                    line = line.Substring(line.IndexOf("=") + 2);
+                    SD.AtmoIRGFactor = float.Parse(line);
+                    continue;
+                }
             }
             Logger("Settings loaded");
         }
@@ -223,6 +255,14 @@ namespace Database
             line = "MWwindH = false";
             file.WriteLine(line);
             line = "MWwindV = false";
+            file.WriteLine(line);
+            line = "SoilThCapMult = 1";
+            file.WriteLine(line);
+            line = "AtmoThCapMult = 1";
+            file.WriteLine(line);
+            line = "SoilIRGFactor = 1";
+            file.WriteLine(line);
+            line = "AtmoIRGFactor = 1";
             file.WriteLine(line);
             file.Close();
             return "Settings initialized";

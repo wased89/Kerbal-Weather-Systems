@@ -24,7 +24,7 @@ namespace Overlay
             return bodies[body.name];
 
         }
-
+        
         private readonly CellMap<double> heightRatios;
 
         private TerrainData(CelestialBody body, int gridLevel)

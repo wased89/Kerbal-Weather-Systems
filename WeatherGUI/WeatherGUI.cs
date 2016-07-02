@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using Database;
 using GeodesicGrid;
 using Overlay;
 using UnityEngine;
 using KerbalWeatherSystems;
+
 using GUI = UnityEngine.GUI;
 
 namespace WeatherGUI

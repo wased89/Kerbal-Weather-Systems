@@ -27,5 +27,10 @@ namespace Database
         public bool MWrainDecay;
         public bool MWwindH;
         public bool MWwindV;
+        // Temperature dynamic tuning
+        public float SoilThCapMult;
+        public float AtmoThCapMult;
+        public float SoilIRGFactor;
+        public float AtmoIRGFactor;
     }
 }

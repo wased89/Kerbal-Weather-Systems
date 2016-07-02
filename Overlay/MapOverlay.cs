@@ -82,12 +82,12 @@ namespace Overlay
             var WsHResc = new ResourceDefinition();
             WsHResc.Resource = "Wind H Speed";
             WsHResc.MinQuantity = 0;
-            WsHResc.MaxQuantity = 100;
+            WsHResc.MaxQuantity = 10;
             resources.Add(WsHResc);
             var WsDirResc = new ResourceDefinition();
             WsDirResc.Resource = "Wind H Vector";
             WsDirResc.MinQuantity = 0;
-            WsDirResc.MaxQuantity = 100;
+            WsDirResc.MaxQuantity = 10;
             resources.Add(WsDirResc);
             var WsVResc = new ResourceDefinition();
             WsVResc.Resource = "Wind Vertical";
@@ -109,12 +109,21 @@ namespace Overlay
             GeoResc.MinQuantity = 0.9999999;
             GeoResc.MaxQuantity = 1.0000001;
             resources.Add(GeoResc);
+            var DDDResc = new ResourceDefinition();
+            DDDResc.Resource = "DeltaDistanceDiff";
+            DDDResc.MinQuantity = 0;
+            DDDResc.MaxQuantity = 0.1;
+            resources.Add(DDDResc);
+            var DTempResc = new ResourceDefinition();
+            DTempResc.Resource = "Delta Temp";
+            DTempResc.MinQuantity = -3;
+            DTempResc.MaxQuantity = 3;
+            resources.Add(DTempResc);
             #endregion
 
             SetActiveResource(0);
             //MakeOverlayLegends();
             LoadTextureScales();
-            WeatherSimulator.GetInitTemperature(PD, 0, hoverCell.Value);
         }
         
         public void LoadTextureScales()
@@ -360,6 +369,24 @@ namespace Overlay
                     // deposit = cell.Position.magnitude;
                     deposit = Math.Sqrt(cell.Position.x * cell.Position.x + cell.Position.y * cell.Position.y + cell.Position.z * cell.Position.z);
                     break;
+                case "DeltaDistanceDiff":
+                    double DDD = 0.0;
+                    double DDD2 = 0.0;
+                    int n = 0;
+                    foreach (Cell neighbor in cell.GetNeighbors(PD.gridLevel))
+                    {
+                        double DeltaDistance = WeatherFunctions.GetDistanceBetweenCells(PD.index, cell, neighbor, WeatherFunctions.GetCellAltitude(PD.index, layer, cell));
+                        DDD += DeltaDistance;
+                        DDD2 += DeltaDistance * DeltaDistance;
+                        n++;
+                    }
+                    DDD /= n;
+                    DDD2 /= n;
+                    deposit = Math.Sqrt(Math.Abs(DDD2-DDD*DDD))/DDD;
+                    break;
+                case "Delta Temp":
+                    deposit = (WeatherSimulator.GetInitTemperature(PD, currentLayer, cell) - WeatherFunctions.GetCellTemperature(PD.index, currentLayer, cell));
+                    break;
             }
             
             var scanned = true;
@@ -477,6 +504,26 @@ namespace Overlay
                     color = new Color32(r, g, b, alpha);
                     return color;
                 }
+                if (definition.Resource.Equals("DeltaDistanceDiff"))
+                {
+                    ratio = (float)Math.Min(((thing1 - definition.MinQuantity)) / ((definition.MaxQuantity - definition.MinQuantity)), 1);
+                    val = (int)(ratio * (255 * 4));
+                    byte r = (byte)Mathf.Clamp((255 - (float)val / 4), 0, 255);
+                    byte g = (byte)Mathf.Clamp((float)val / 4, 0, 255);
+                    byte b = r;
+                    color = new Color32(r, g, b, alpha);
+                    return color;
+                }
+                    if (definition.Resource.Equals("Delta Temp"))
+                {
+                    ratio = (float)Math.Min(((thing1 - definition.MinQuantity)) / ((definition.MaxQuantity - definition.MinQuantity)), 1);
+                    val = (int)(ratio * (255 * 4));
+                    byte r = (byte)Mathf.Clamp((float)val / 4, 0, 255);
+                    byte g = r;
+                    byte b = (byte)Mathf.Clamp((255 - (float)val / 4), 0, 255);
+                    color = new Color32(r, g, b, alpha);
+                    return color;
+                }
 
             }
             else
@@ -528,6 +575,20 @@ namespace Overlay
             if (WeatherSettings.SD.MWwindV) { GUILayout.Label("wind vert: " + String.Format("{0:+0.00000;-0.00000}", WeatherFunctions.GetCellwindV(PD.index, currentLayer, cell))); }
             */
             GUILayout.Label("Geodesic: " + Math.Sqrt(cell.Position.x * cell.Position.x + cell.Position.y * cell.Position.y + cell.Position.z * cell.Position.z));
+            GUILayout.Label("ΔTemp (KSP-KWS): " + (WeatherSimulator.GetInitTemperature(PD, currentLayer, cell) - WeatherFunctions.GetCellTemperature(PD.index, currentLayer, cell)));
+            double DDD = 0.0;
+            double DDD2 = 0.0;
+            int n = 0;
+            foreach (Cell neighbor in cell.GetNeighbors(PD.gridLevel))
+            {
+                double DeltaDistance = WeatherFunctions.GetDistanceBetweenCells(PD.index, cell, neighbor, WeatherFunctions.GetCellAltitude(PD.index, currentLayer, cell));
+                DDD += DeltaDistance;
+                DDD2 += DeltaDistance * DeltaDistance;
+                n++;
+            }
+            DDD /= n;
+            DDD2 /= n;
+            GUILayout.Label("ΔDistanceδ: " + Math.Sqrt(Math.Abs(DDD2 - DDD * DDD)) / DDD);
             GUILayout.EndVertical();
 
         }

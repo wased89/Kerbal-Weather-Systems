@@ -180,6 +180,7 @@ namespace Simulation
 
             double DeltaTime = WeatherFunctions.GetDeltaTime(PD.index);  
             double DeltaAltitude = WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell);
+            double DeltaDistance_Avg = 0.0;
 
             {
                 int neighborIndex = 0;
@@ -441,7 +442,7 @@ namespace Simulation
             
             for (int AltLayer = stratoCount - 1; AltLayer >= 0; AltLayer--) //assumed 1 strato layer currently
             {
-                thermalCapStrato[AltLayer] = PD.atmoShit.specificHeatGas * PD.LiveMap[0][cell].pressure * LFStrato[AltLayer] / G;
+                thermalCapStrato[AltLayer] = PD.atmoShit.specificHeatGas * PD.LiveMap[0][cell].pressure * LFStrato[AltLayer] / G / WeatherSettings.SD.AtmoThCapMult;
 
                 SWRStrato[AltLayer] = 0;
                 SWAStrato[AltLayer] = SWT * LFStrato[AltLayer] * PD.atmoShit.SWA;
@@ -457,7 +458,8 @@ namespace Simulation
                 WeatherCell wCellLive = PD.LiveMap[AltLayer][cell];
 
                 thermalCap[AltLayer] = (PD.atmoShit.specificHeatGas * (1 - wCellLive.relativeHumidity) +
-                        PD.dewShit.cg * wCellLive.relativeHumidity) * PD.LiveMap[0][cell].pressure * LF[AltLayer] / G;
+                        PD.dewShit.cg * wCellLive.relativeHumidity) * PD.LiveMap[0][cell].pressure * LF[AltLayer] / G / WeatherSettings.SD.AtmoThCapMult;
+
                 if (AltLayer == layerCount - 1)
                 {
                     SWR[AltLayer] = SWXStrato[0] * Cl_SWR[AltLayer] * ReflFunc[AltLayer];
@@ -479,14 +481,14 @@ namespace Simulation
             }
             //Soil thermal layer calc
             {
-                thermalCapSoil = PD.biomeDatas[WeatherFunctions.GetBiome(PD.index, cell)].SoilThermalCap;
+                thermalCapSoil = PD.biomeDatas[WeatherFunctions.GetBiome(PD.index, cell)].SoilThermalCap / WeatherSettings.SD.SoilThCapMult;
                 // LiquidSoil Reflection (Fresnel Law, incident light is partly reflected out in air, partly refracted within water)
                 SoilReflection = 0f;
                 if (PD.biomeDatas[WeatherFunctions.GetBiome(PD.index, cell)].FLC > 0.9) // biome must be very shiny for reflection, liquid surfaces do
                 {
                     SoilReflection = calcSoilRefractiveIndex(PD.index, cell);
                 }
-                SWRSoil = SWX[0] * Math.Max(PD.biomeDatas[WeatherFunctions.GetBiome(PD.index, cell)].Albedo, SoilReflection);
+                SWRSoil = SWX[0] * Mathf.Max(PD.biomeDatas[WeatherFunctions.GetBiome(PD.index, cell)].Albedo, SoilReflection);
                 SWASoil = SWX[0] - SWRSoil;
                 if (thermalCapSoil == 0)
                 {
@@ -501,7 +503,7 @@ namespace Simulation
             //soil IR calcs
             {
                 SoilCell soilCell = PD.LiveSoilMap[cell];
-                IRGSoil = (float)PhysicsGlobals.StefanBoltzmanConstant * ToTheFourth(soilCell.temperature);
+                IRGSoil = (float)PhysicsGlobals.StefanBoltzmanConstant * ToTheFourth(soilCell.temperature) * WeatherSettings.SD.SoilIRGFactor;
                 IRAUSoil = 0;
                 IRRSoil = 0;
                 
@@ -510,7 +512,7 @@ namespace Simulation
             for (int AltLayer = 0; AltLayer < layerCount; AltLayer++)
             {
                 WeatherCell wCellLive = PD.LiveMap[AltLayer][cell];
-                IRG[AltLayer] = (float)PhysicsGlobals.StefanBoltzmanConstant * ToTheFourth(wCellLive.temperature) * LF[AltLayer];
+                IRG[AltLayer] = (float)PhysicsGlobals.StefanBoltzmanConstant * ToTheFourth(wCellLive.temperature) * LF[AltLayer] * WeatherSettings.SD.AtmoIRGFactor;
                 
                 if (AltLayer == 0)
                 {
@@ -946,7 +948,7 @@ namespace Simulation
                         
             //Calc wind vector
             #region windCalcs
-
+            
             Vector3[] totalWindVector = new Vector3[layerCount];
 
             for (int layer = 0; layer < layerCount; layer++)
@@ -975,7 +977,7 @@ namespace Simulation
                     Pressure_eq = (layer == 0)? wCellNeighbor.pressure: (wCellNeighbor.pressure * Math.Exp((neigh_Z - cell_Z)
                             / (PD.SHF * PD.LiveMap[layer - 1][neighbor].temperature)));
                     // all pressures need be reduced at the same altitude (that of the current cell, layer) before comparing them
-                    /*
+                    
                     if (layer == 0)
                     {
                         Pressure_eq = wCellNeighbor.pressure;
@@ -985,7 +987,7 @@ namespace Simulation
                         Pressure_eq = (wCellNeighbor.pressure * Math.Exp((neigh_Z - cell_Z)
                             / (PD.SHF * PD.LiveMap[layer - 1][neighbor].temperature)));  
                     }
-                    */
+
                     Vector3 cellDirUpVector = Vector3.Project(neighbor.Position - cell.Position, cell.Position);
                     Vector3 cellNeighborDirVector = (neighbor.Position - cell.Position);
                     Vector3 cellDirVector = ((neighbor.Position - cell.Position)-Vector3.Project(neighbor.Position-cell.Position, cell.Position))*PD.body.Radius; //cell to neighbor
@@ -1003,11 +1005,10 @@ namespace Simulation
                     float myWindDirDot = Vector3.Dot(cellWindHor, cellDirVector);
                     float neighborWindDirDot = Vector3.Dot(neighborWindHor, -cellDirVector);
                     double deltaPressure = wCell.pressure - Pressure_eq;
-                    
 
                     DP[layer][n] = deltaPressure;
                     Divg[layer] += deltaPressure;
-
+                    
                     //double CosDir = Math.Cos(direction[n]*Mathf.Deg2Rad);
                     //double SinDir = Math.Sin(direction[n]*Mathf.Deg2Rad);
 
@@ -1148,11 +1149,12 @@ namespace Simulation
 
 
                 #region dynamicPressure
+
                 float staticPressureChange = 0;
                 float dynPressureAbove = 0;
                 float dynPressureBelow = 0;
                 float dynPressureLayer = 0;
-
+        
                 double DeltaDistance = 0;
                 foreach(Cell neighbor in cell.GetNeighbors(PD.gridLevel))
                 {
@@ -1161,6 +1163,7 @@ namespace Simulation
                 DeltaDistance /= cell.GetNeighbors().ToList().Count;
                 DeltaDistance *= PD.body.Radius;
                 //double DeltaDistance = WeatherFunctions.GetDistanceBetweenCells(PD.index, cell, cell.GetNeighbors(PD.gridLevel).First(), WeatherFunctions.GetCellAltitude(PD.index, layer, cell));
+
                 if(DeltaAltitude == 0 || double.IsNaN(DeltaAltitude))
                 {
                     KWSerror = true;
@@ -1180,6 +1183,7 @@ namespace Simulation
                 if (layer > 0)  // go with layer below
                 {
                     dynPressureBelow = wsVVector.magnitude > 0 ? 0.5f * D_wet[layer-1] * wsVVector.sqrMagnitude: 0;  //TODO: for even more accuracy, use average wsV with layer below
+
                     double D_variance = TimeChargeV < 0 ? 1.0f : (float)((D_wet[layer] + D_wet[layer - 1] * TimeChargeV) / D_wet[layer]);
                     if (D_variance < 0)
                     {
@@ -1252,7 +1256,6 @@ namespace Simulation
 
                 wCell.windVector = totalWindVector[layer] + wsVVector; //new Vector3(Total_N[layer], wsV, Total_E[layer]);
                 PD.BufferMap[layer][cell] = wCell;
-
             }
             #endregion
 
@@ -1295,6 +1298,7 @@ namespace Simulation
                     
                     H_adv_S[layer] += H_adv;
                 }
+
                 double DeltaDistance = 0;
                 foreach(Cell neighbor in cell.GetNeighbors(PD.gridLevel))
                 {
@@ -1946,8 +1950,8 @@ namespace Simulation
                     }
                     file.WriteLine("Soil  ");
                     file.WriteLine();
-
-                    file.WriteLine("Layer " + "   ∇P (all neighbors)");
+                    
+                    file.WriteLine("Layer " + "   ∇P (all neighbors)" + "  ⇩ neighbor index ⇩  " + "                           tensStr (x,y,z)     " + "             rotrStr (x,y,z)     ");
                     file.Write("         ");
                     foreach (Cell neighbor in cell.GetNeighbors(PD.gridLevel))
                     {
@@ -1962,11 +1966,20 @@ namespace Simulation
                         {
                             file.Write(String.Format("{0:+0.000000;-0.000000}", DP[i][n]) + " ");
                         }
+                        file.Write("  (");
+                        file.Write(String.Format("{0:+0.00000;-0.00000}", tensStr[i].x) + ", ");
+                        file.Write(String.Format("{0:+0.00000;-0.00000}", tensStr[i].y) + ", ");
+                        file.Write(String.Format("{0:+0.00000;-0.00000}", tensStr[i].z) + ") ");
+                        file.Write("  (");
+                        file.Write(String.Format("{0:+0.00000;-0.00000}", rotrStr[i].x) + ", ");
+                        file.Write(String.Format("{0:+0.00000;-0.00000}", rotrStr[i].y) + ", ");
+                        file.Write(String.Format("{0:+0.00000;-0.00000}", rotrStr[i].z) + ")");
                         file.WriteLine();
                     }
                     file.WriteLine();
+                    
+                    file.WriteLine("Layer " + "   Divg " + "  WsDiv  " + "       Ws_N " + "      Ws_E " + "    Total_N " + "   Total_E " + "   buoyancy " + "    DP_V   " + "         WindVector (x,y,z)     " + "  WindSpeed " + " V_disp%");
 
-                    file.WriteLine("Layer " + "   Divg " + "  WsDiv  " + "       Ws_N " + "      Ws_E " + "    Total_N " + "   Total_E " + "   buoyancy " + "    DP_V   " + "         WindVector (x,y,z)     " + " WindSpeed " + " V_disp%");
                     file.WriteLine("Strat ");
                     for (int i = layerCount - 1; i >= 0; i--)
                     {

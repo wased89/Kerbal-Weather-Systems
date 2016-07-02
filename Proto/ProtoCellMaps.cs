@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Database;
+﻿using Database;
 using ProtoBuf;
-using KerbalWeatherSystems;
 
 namespace Proto
 {

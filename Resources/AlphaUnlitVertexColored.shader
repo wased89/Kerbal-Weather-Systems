@@ -2,7 +2,7 @@
 
 // Skipping shader variants that would not be included into build of current scene.
 
-Shader "SimpleWeather/AlphaUnlitVertexColored" {
+Shader "KerbalWeatherSystems/AlphaUnlitVertexColored" {
 Properties {
  _Color ("Main Color", Color) = (1,1,1,1)
  _MainTex ("Base (RGB) Trans (A)", 2D) = "white" { }
