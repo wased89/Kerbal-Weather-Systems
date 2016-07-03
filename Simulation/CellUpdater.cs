@@ -180,7 +180,7 @@ namespace Simulation
 
             double DeltaTime = WeatherFunctions.GetDeltaTime(PD.index);  
             double DeltaAltitude = WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell);
-            double DeltaDistance_Avg = 0.0;
+            double[] DeltaDistance_Avg = new double[layerCount];
 
             {
                 int neighborIndex = 0;
@@ -955,7 +955,7 @@ namespace Simulation
                 // Horizontal wind
                 wsDiv[layer] = 0;
                 int n = 0;
-                DeltaDistance_Avg = 0.0;
+                DeltaDistance_Avg[layer] = 0.0;
                 float Pressure_eq = 0;
                 float cell_Z = WeatherFunctions.GetCellAltitude(PD.index, layer, cell);
                 DP[layer] = new float[cell.GetNeighbors(PD.gridLevel).ToList().Count];
@@ -963,7 +963,7 @@ namespace Simulation
                 {
                     WeatherCell wCellNeighbor = PD.LiveMap[layer][neighbor];
                     double DeltaDistance = WeatherFunctions.GetDistanceBetweenCells(PD.index, cell, neighbor, WeatherFunctions.GetCellAltitude(PD.index, layer, cell));
-                    DeltaDistance_Avg += DeltaDistance;
+                    DeltaDistance_Avg[layer] += DeltaDistance;
                     double CosDir = Math.Cos(direction[n]);
                     double SinDir = Math.Sin(direction[n]);
                     float neigh_Z = WeatherFunctions.GetCellAltitude(PD.index, layer, neighbor);
@@ -998,7 +998,7 @@ namespace Simulation
                 Divg[layer] /= n;
                 wsN[layer] /= n;
                 wsE[layer] /= n;
-                DeltaDistance_Avg /= n;
+                DeltaDistance_Avg[layer] /= n;
 
                 // tensor components on the x-z local plane due to airflow from adjacent cells
                 tensStr[layer].x *= PD.LiveMap[layer][cell].windVector.x * DeltaTime / n;
@@ -1140,7 +1140,7 @@ namespace Simulation
                     Logger("wsV went wrong" + " @ cell: " + cell.Index);
                 }
                 double TimeChargeV = Math.Sign(wsV)*(1.0 - Math.Exp(-Math.Abs(DeltaTime * wsV / DeltaAltitude)));  // needed to stabilize V_disp from variance in DeltaTime
-                double TimeChargeH = Math.Sign(wsDiv[layer])*(1.0 - Math.Exp((float)-Math.Abs(DeltaTime * wsDiv[layer] / DeltaDistance_Avg)));  // needed to stabilize H_disp from variance in DeltaTime
+                double TimeChargeH = Math.Sign(wsDiv[layer])*(1.0 - Math.Exp((float)-Math.Abs(DeltaTime * wsDiv[layer] / DeltaDistance_Avg[layer])));  // needed to stabilize H_disp from variance in DeltaTime
                 
                 dynPressure[layer] = (float)(0.5f * D_wet[layer] * -wsDiv[layer] * Math.Abs(wsDiv[layer])); // horizontal dynamicPressure
                 staticPressureChange = (float)(-TimeChargeH);  // static pressure change (%) due to horizontal flow
