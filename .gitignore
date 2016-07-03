@@ -6,3 +6,4 @@ bin/
 obj/
 packages/
 Overlay/OverlayRenderer.zip
+.vs/config/applicationhost.config
