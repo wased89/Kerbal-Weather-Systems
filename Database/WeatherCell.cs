@@ -23,6 +23,7 @@ namespace Database
         public CloudShit cloud { get; internal set; } //15B
         [ProtoMember(7)]
         public ProtoVector3 windVector { get; internal set; } //12B IS LOCAL TO THE CELL, NOT WORLD COORDS
+        public float flowPChange { get; internal set; }
         
         public float getDropletSize()
         {

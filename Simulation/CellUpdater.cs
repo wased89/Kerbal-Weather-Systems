@@ -1202,7 +1202,9 @@ namespace Simulation
                 // go with this layer
                 dynPressureLayer = (wsV > 0 || layer > 0) ? (0.5f * D_wet[layer] * wsV * wsV) : 0;
                 staticPressureChange = (float)(PD.LiveMap[layer][cell].pressure * (staticPressureChange - ((wsV > 0 || layer > 0) ? Math.Abs(TimeChargeV) : 0)) / DeltaTime);
-                dynPressure[layer] += dynPressureAbove + dynPressureBelow - dynPressureLayer + staticPressureChange;
+                float flowPChangeKept = 0.78f;  //TODO: find the correct value for any DeltaTime to keep wind from ever-increasing and from oscillating (0.78 = best for DT = 8.2s)
+                wCellBuffer.flowPChange = wCellBuffer.flowPChange * flowPChangeKept + staticPressureChange;  
+                dynPressure[layer] += dynPressureAbove + dynPressureBelow - dynPressureLayer + wCellBuffer.flowPChange;
                 if (float.IsNaN(dynPressure[layer]))
                 {
                     KWSerror = true;
@@ -1219,7 +1221,7 @@ namespace Simulation
                     KWSerror = true;
                     Logger("V_disp is NaN" + " @ cell: " + cell.Index);
                 }
-
+                PD.BufferMap[layer][cell] = wCellBuffer;
             }
             #endregion
 
