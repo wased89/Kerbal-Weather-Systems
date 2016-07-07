@@ -252,10 +252,10 @@ namespace KerbalWeatherSystems
             }
             else
             {
-                return D_Wet(database, cell, vessel.altitude);
+                return D_Wet(database, cell, (float)vessel.altitude);
             }
         }
-        internal static double D_Wet(int database, Cell cell, double altitude)  //TODO: provide public access for D_wet (at any altitude)
+        internal static double D_Wet(int database, Cell cell, float altitude)  //TODO: provide public access for D_wet (at any altitude)
         {  // to: find D_wet above and below required altitude; interpolate for P at that altitude and compute with P/rho^k_ad = constant (ideal gas law)
             PlanetData PD = WeatherDatabase.PlanetaryData[database];
             float deltaAltitude = GetDeltaLayerAltitude(database, cell);
@@ -277,10 +277,10 @@ namespace KerbalWeatherSystems
                 }
                 float RHint = PD.LiveMap[layer][cell].relativeHumidity + RHRate * altitudeRem;
                 float Tint = PD.LiveMap[layer][cell].temperature + LapseRate * altitudeRem;
-                float Pint = (float)(PD.LiveMap[layer][cell].pressure * Math.Exp(-altitudeRem / (PD.SHF * Tint)));
+                float Pint = (float)(PD.LiveMap[layer][cell].pressure * Math.Exp(-altitudeRem / (SH(PD.index, altitude, Tint))));
                 double ew_eq = getEwEq(database, Tint);
                 double ew = ew_eq * RHint;
-                return ((Pint - ew) * PD.atmoShit.M + ew * PD.dewShit.M) / (CellUpdater.UGC * Tint);
+                return ((Pint - ew) * PD.atmoData.M + ew * PD.dewData.M) / (CellUpdater.UGC * Tint);
             }
             else  // stratosphere
             {
@@ -293,14 +293,14 @@ namespace KerbalWeatherSystems
             PlanetData PD = WeatherDatabase.PlanetaryData[database];
             if (temperature >= 304)
             {
-                return Mathf.Pow(10, PD.dewShit.A1 - PD.dewShit.B1 / (temperature + PD.dewShit.C1));
+                return Mathf.Pow(10, PD.dewData.A1 - PD.dewData.B1 / (temperature + PD.dewData.C1));
             }
             else
             {
-                return Mathf.Pow(10, PD.dewShit.A2 - PD.dewShit.B2 / (temperature + PD.dewShit.C2));
+                return Mathf.Pow(10, PD.dewData.A2 - PD.dewData.B2 / (temperature + PD.dewData.C2));
             }
         }
-        public static double VdW(AtmoShit substance,  float pressure, float temperature, out double error)  // computes gas density according to real gas equation
+        public static double VdW(AtmoData substance,  float pressure, float temperature, out double error)  // computes gas density according to real gas equation
         {
             /*
             Density of a gas substance (ρ) = m/V; mass of substance (m); amount of substance in moles (n) = m/M
@@ -323,6 +323,11 @@ namespace KerbalWeatherSystems
             double Dcorr = (Pcorr)/temperature*M/CellUpdater.UGC*Vcorr;
             error = (Dcorr - Dideal) / Dcorr;  // gives how much error is done with the ideal gas law
             return Dcorr;
+        }
+        public static double SH(int database, float altitude, float temperature)
+        {
+            PlanetData PD = WeatherDatabase.PlanetaryData[database];
+            return CellUpdater.UGC * PD.SH_correction / PD.atmoData.M / (float)CellUpdater.G(PD.index, altitude) * temperature;
         }
     }
 }

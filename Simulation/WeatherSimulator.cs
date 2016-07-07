@@ -326,12 +326,12 @@ namespace Simulation
                     if(layer == 0)
                     {
                         wCell.pressure = (float)(PD.LiveMap[layers - 1][cell].pressure 
-                            * Math.Exp(-WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell) / (PD.SHF * PD.LiveMap[layers - 1][cell].temperature)));
+                            * Math.Exp(-WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell) / (CellUpdater.UGC * PD.SH_correction / PD.atmoData.M / CellUpdater.G(PD.index, layer * WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell)) * PD.LiveMap[layers - 1][cell].temperature)));
                     }
                     else
                     {
                         wCell.pressure = (float)(tempMap[layer - 1][cell].pressure 
-                            * Math.Exp(-WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell) / (PD.SHF * tempMap[layer - 1][cell].temperature)));
+                            * Math.Exp(-WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell) / (CellUpdater.UGC * PD.SH_correction / PD.atmoData.M / CellUpdater.G(PD.index, layer * WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell)) * tempMap[layer - 1][cell].temperature)));
                     }
                     
 
@@ -373,7 +373,7 @@ namespace Simulation
                         wCell.CCN = 0;
                         
                         wCell.pressure = (float)(tempMap[AltLayer-1][cell].pressure 
-                            * Math.Exp(-WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell) / (PD.SHF * tempMap[AltLayer - 1][cell].temperature)));
+                            * Math.Exp(-WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell) / (CellUpdater.UGC * PD.SH_correction / PD.atmoData.M / CellUpdater.G(PD.index, AltLayer * WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell)) * tempMap[AltLayer - 1][cell].temperature)));
                         wCell.relativeHumidity = (PD.biomeDatas[WeatherFunctions.GetBiome(PD.index, cell)].FLC * wCell.temperature / 288.15f) * 0.4f;
                     }
                     

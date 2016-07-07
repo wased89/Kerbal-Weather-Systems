@@ -12,16 +12,16 @@ namespace Database
     {
         public int index; //index assigned to you by KWS for accessing the Planet Data from the database
         public int gridLevel;
-        public float G; //gravity at sea level in m/s/s
         public float meanTropoHeight; //mean tropopause altitutde
         public float irradiance; //the value of incoming SW radiaton, ie. Kerbin = 1360.8
-        public float SHF; //scale height factor constant
+        //public float SHF; //scale height factor constant
+        public float SH_correction; // ScaleHeight correction (to best approach KSP pressure curves)
         public double updateTime; //time since last update
         public int layers;
         public int stratoLayers;
         public CelestialBody body;
-        public AtmoShit atmoShit;
-        public DewShit dewShit;
+        public AtmoData atmoData;
+        public DewData dewData;
         public Dictionary<float, float> TropAlts = new Dictionary<float, float>(); //one time init for the tropopause altitudes, Key = latitude, Value = altitude
         public KWSCellMap<string> biomes = new KWSCellMap<string>(5);
         public Dictionary<string, BiomeData> biomeDatas = new Dictionary<string, BiomeData>(); //biome data for all the biomes

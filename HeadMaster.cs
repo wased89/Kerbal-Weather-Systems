@@ -32,7 +32,7 @@ namespace KerbalWeatherSystems
                 Logger("Integrity check failed, quitting.");
                 return;
             }
-            //init planet and shit
+            //init planet
             WeatherDatabase.LoadInitPlanetaryData();
             WeatherSettings.LoadSettings();
             GameEvents.onGameSceneSwitchRequested.Add(scene =>

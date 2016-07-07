@@ -63,7 +63,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Database\AtmoShit.cs" />
+    <Compile Include="Database\AtmoData.cs" />
     <Compile Include="Database\BiomeData.cs" />
     <Compile Include="Database\KWSCellMap.cs" />
     <Compile Include="WeatherGUI\WeatherGUI.cs" />
@@ -72,8 +72,8 @@
     <Compile Include="Overlay\TerrainData.cs" />
     <Compile Include="Database\SettingsData.cs" />
     <Compile Include="Database\Settings.cs" />
-    <Compile Include="Database\CloudShit.cs" />
-    <Compile Include="Database\DewShit.cs" />
+    <Compile Include="Database\CloudData.cs" />
+    <Compile Include="Database\DewData.cs" />
     <Compile Include="Database\PlanetData.cs" />
     <Compile Include="Database\SoilCell.cs" />
     <Compile Include="Database\WeatherDatabase.cs" />

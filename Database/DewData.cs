@@ -5,8 +5,8 @@ using System.Text;
 
 namespace Database
 {
-    //this is a DewShit, on Earth, the dew shit is water, on Mars, it's CO2
-    public class DewShit
+    //this is a DewData, on Earth, the dew is water, on Mars, it's CO2
+    public class DewData
     {
         //if temp is over 304k
         public float A1;

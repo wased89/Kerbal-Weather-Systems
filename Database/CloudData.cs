@@ -7,7 +7,7 @@ using ProtoBuf;
 namespace Database
 {
     [ProtoContract]
-    public struct CloudShit
+    public struct CloudData
     {
         [ProtoMember(1)]
         public float dDew; //deposited dew in the cloud, solid state
