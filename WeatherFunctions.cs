@@ -104,14 +104,15 @@ namespace KerbalWeatherSystems
         }
         public static float GetCellwindV(int database, int layer, Cell cell)
         {
-            return WeatherDatabase.PlanetaryData[database].LiveMap[layer][cell].windVector.y;
+            Vector3 windV = Vector3.Project(WeatherDatabase.PlanetaryData[database].LiveMap[layer][cell].windVector, cell.Position);
+            return Vector3.Dot(windV.normalized, cell.Position) * windV.magnitude;
         }
         public static float GetCellwindH(int database, int layer, Cell cell)
         {
-            Vector3 wind = WeatherDatabase.PlanetaryData[database].LiveMap[layer][cell].windVector;
-            return (float)(Math.Sqrt(wind.x * wind.x + wind.z * wind.z));
+            WeatherCell wCell = WeatherDatabase.PlanetaryData[database].LiveMap[layer][cell];
+            return (float)(wCell.windVector - Vector3.Project(wCell.windVector, cell.Position)).magnitude;
         }
-        public static double GetCellwindDir(int database, int layer, Cell cell) 
+        public static double GetCellwindDir(int database, int layer, Cell cell)  //broken with new wind system
             // Note: returns direction wind is blowing towards (North = 0, CW); however convention holds to show direction wind is blowing from (180°-windDir)
         {
             Vector3 wind = WeatherDatabase.PlanetaryData[database].LiveMap[layer][cell].windVector;

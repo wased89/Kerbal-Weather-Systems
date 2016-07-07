@@ -356,7 +356,7 @@ namespace Overlay
                     deposit2 = PD.LiveMap[layer][cell].windVector.z;
                     break;
                 case "Wind Vertical":
-                    deposit = PD.LiveMap[layer][cell].windVector.y;
+                    deposit = WeatherFunctions.GetCellwindV(PD.index, layer, cell); // PD.LiveMap[layer][cell].windVector.y);
                     break;
                 case "Rel. Humidity":
                     deposit = PD.LiveMap[layer][cell].relativeHumidity;
@@ -437,6 +437,7 @@ namespace Overlay
                     color = new Color32(r, g, b, alpha);
                     return color;
                 }
+                //--------------------BROKEN WITH NEW WIND SYSTEM----------------------\\
                 if (definition.Resource.Equals("Wind H Vector"))  //this shows horizontal wind direction and intensity
                 {
                     double Ws = Math.Sqrt((double)(deposit.Value * deposit.Value + deposit2.Value * deposit2.Value));
