@@ -385,7 +385,7 @@ namespace Simulation
             //1 instead of 0 because his layer 0 is my layer1
             float SPH = AH[0] / D_dry[0];
             float SPHeq = AHDP[0] / D_dry[0];
-            float K_evap = 25 + 19 * getWsH(PD.LiveMap[0][cell]); //evapouration shit with the horizontal wind in m/s
+            float K_evap = 25 + 19 * getWsH(PD.LiveMap[0][cell], cell); //evapouration shit with the horizontal wind in m/s
             double Evap = K_evap * (SPHeq - SPH) / 3600 * PD.biomeDatas[WeatherFunctions.GetBiome(PD.index, cell)].FLC; //divide by 3600 because seconds to hours
 
             if (Evap < 0)
@@ -1125,6 +1125,10 @@ namespace Simulation
                 Vector3 wsVVector = cellWindUp * ((((float)buoyancy[layer] + (float)DP_V[layer] - 
                     (cellWindUp.magnitude * (float)Mu / D_wet[layer])) - WsGradVector.magnitude) * (float)DeltaTime/2 + Ws_V_ana[layer]);
 
+
+                wCell.windVector = totalWindVector[layer] + wsVVector; //new Vector3(Total_N[layer], wsV, Total_E[layer]);
+                PD.BufferMap[layer][cell] = wCell;
+
                 // vertical pressure gradient (∇P)
                 double Pressure_eq = 0; // all pressures need be reduced at the same altitude (that of the current cell, layer) before comparing them
                 DP_V[layer] = 0;
@@ -1173,15 +1177,17 @@ namespace Simulation
                     KWSerror = true;
                     Logger("DeltaTime went wrong" + " @ cell: " + cell.Index);
                 }
-                double TimeChargeV = Math.Sign(wsVVector.magnitude)*(1.0 - Math.Exp(-Math.Abs(DeltaTime * wsVVector.magnitude / DeltaAltitude)));  // needed to stabilize V_disp from variance in DeltaTime
-                double TimeChargeH = Math.Sign(wsDiv[layer])*(1.0 - Math.Exp((float)-Math.Abs(DeltaTime * wsDiv[layer] / DeltaDistance)));  // needed to stabilize H_disp from variance in DeltaTime
+                //The V_Disp and H_Disp stuff are to do with Advection.
+                double TimeChargeV = Vector3.Dot(wsVVector, cell.Position) * (1.0 - Math.Exp(-(DeltaTime * wsVVector.magnitude / DeltaAltitude)));
+                //double TimeChargeV = Math.Sign(wsVVector.magnitude)*(1.0 - Math.Exp(-Math.Abs(DeltaTime * wsVVector.magnitude / DeltaAltitude)));  // needed to stabilize V_disp from variance in DeltaTime
+                double TimeChargeH = Math.Sign(wsDiv[layer])*(1.0 - Math.Exp(-Math.Abs(DeltaTime * wsDiv[layer] / DeltaDistance)));  // needed to stabilize H_disp from variance in DeltaTime
                 
                 dynPressure[layer] = (float)(0.5f * D_wet[layer] * -wsDiv[layer] * Math.Abs(wsDiv[layer])); // horizontal dynamicPressure
                 staticPressureChange = (float)-TimeChargeH;  // static pressure change (%) due to horizontal flow
                 
                 if (layer > 0)  // go with layer below
                 {
-                    dynPressureBelow = wsVVector.magnitude > 0 ? 0.5f * D_wet[layer-1] * wsVVector.sqrMagnitude: 0;  //TODO: for even more accuracy, use average wsV with layer below
+                    dynPressureBelow = Vector3.Dot(wsVVector, cell.Position) > 0 ? 0.5f * D_wet[layer-1] * wsVVector.sqrMagnitude: 0;  //TODO: for even more accuracy, use average wsV with layer below
 
                     double D_variance = TimeChargeV < 0 ? 1.0f : (float)((D_wet[layer] + D_wet[layer - 1] * TimeChargeV) / D_wet[layer]);
                     if (D_variance < 0)
@@ -1198,7 +1204,7 @@ namespace Simulation
                 }
                 if (layer < layerCount-1)  // go with layer above
                 {
-                    dynPressureAbove = (wsVVector.magnitude < 0 ? (0.5f * D_wet[layer + 1] * wsVVector.sqrMagnitude) : 0);  // dynamic pressure due to wind with layer above
+                    dynPressureAbove = Vector3.Dot(wsVVector, cell.Position) < 0 ? (0.5f * D_wet[layer + 1] * wsVVector.sqrMagnitude) : 0;  // dynamic pressure due to wind with layer above
                     double D_variance = TimeChargeV > 0 ? 1.0f : (float)((D_wet[layer] - D_wet[layer + 1] * TimeChargeV) / D_wet[layer]);
                     if (D_variance < 0)
                     {
@@ -1216,7 +1222,7 @@ namespace Simulation
                 {
                     double error = 0;
                     float D_dryStrato = (float)(WeatherFunctions.VdW(PD.atmoShit, PD.LiveStratoMap[0][cell].pressure, PD.LiveStratoMap[0][cell].temperature, out error));
-                    dynPressureAbove = (wsVVector.magnitude < 0 ? (0.5f * D_dryStrato * wsVVector.sqrMagnitude) : 0);  // dynamic pressure due to wind with layer above
+                    dynPressureAbove = Vector3.Dot(wsVVector, cell.Position) < 0 ? (0.5f * D_dryStrato * wsVVector.sqrMagnitude) : 0;  // dynamic pressure due to wind with layer above
                     double D_variance = TimeChargeV > 0 ? 1.0 : ((D_wet[layer] - D_dryStrato * TimeChargeV) / D_wet[layer]);
                     if (D_variance < 0)
                     {
@@ -1231,8 +1237,8 @@ namespace Simulation
                     }
                 }
                 // go with this layer
-                dynPressureLayer = (wsVVector.magnitude > 0 || layer > 0) ? (0.5f * D_wet[layer] * wsVVector.magnitude) : 0;
-                staticPressureChange = (float)(wCellLive.pressure * (staticPressureChange - ((wsVVector.magnitude> 0 || layer > 0) ? Math.Abs(TimeChargeV) : 0)) / DeltaTime);
+                dynPressureLayer = (Vector3.Dot(wsVVector, cell.Position) > 0 || layer > 0) ? 0.5f * D_wet[layer] * wsVVector.magnitude : 0;
+                staticPressureChange = (float)(wCellLive.pressure * (staticPressureChange - ((Vector3.Dot(wsVVector, cell.Position) > 0 || layer > 0) ? Math.Abs(TimeChargeV) : 0)) / DeltaTime);
                 dynPressure[layer] += dynPressureAbove + dynPressureBelow - dynPressureLayer + staticPressureChange;
                 if (float.IsNaN(dynPressure[layer]))
                 {
@@ -1248,8 +1254,9 @@ namespace Simulation
                 #endregion
 
                 //calc V_disp
-                float V_disp_limit = (float)(TimeChargeV / staticPressureChange * (wsVVector.magnitude < 0 ? dynPressureAbove : dynPressureBelow));
+                float V_disp_limit = (float)(TimeChargeV / staticPressureChange * (Vector3.Dot(wsVVector, cell.Position) < 0 ? dynPressureAbove : dynPressureBelow));
 
+                //V_Disp is the amount of mass that gets moved by the wind per DeltaTime, as a %
                 V_disp[layer] = (layer == 0 ? 0 : Mathf.Max(-V_disp_limit, Mathf.Min(V_disp_limit, (float)(wsVVector.magnitude * DeltaTime / DeltaAltitude))));
 
                 if (float.IsNaN(V_disp[layer]))
@@ -1257,9 +1264,7 @@ namespace Simulation
                     KWSerror = true;
                     Logger("V_disp is NaN" + " @ cell: " + cell.Index);
                 }
-
-                wCell.windVector = totalWindVector[layer] + wsVVector; //new Vector3(Total_N[layer], wsV, Total_E[layer]);
-                PD.BufferMap[layer][cell] = wCell;
+                
             }
             #endregion
 
@@ -1425,7 +1430,7 @@ namespace Simulation
                 else
                 {
                     ALR[layer] = -G * (1 + PD.dewShit.he * 1000 * N_dew[layer] / D_dry[layer] / UGC * PD.atmoShit.M / wCell.temperature)
-                     / (PD.atmoShit.specificHeatGas + (PD.dewShit.he * 1000 * PD.dewShit.he * 1000 * N_dew[layer] / D_dry[layer] / UGC * PD.dewShit.M / wCell.temperature / wCell.temperature));
+                     / (PD.atmoShit.specificHeatGas + (PD.dewShit.he * 1000000 * PD.dewShit.he * N_dew[layer] / D_dry[layer] / UGC * PD.dewShit.M / wCell.temperature / wCell.temperature));
                     //Saturated (moist) Adiabatic Lapse Rate
                 }
             }
@@ -1483,8 +1488,9 @@ namespace Simulation
                     }
                 }
                 float L = (216.65f - 288.15f) / PD.meanTropoHeight;
-                Delta_T = (float) ((Delta_T/ DeltaAltitude - L) * PD.LiveMap[layer][cell].windVector.y * WeatherFunctions.GetDeltaTime(PD.index) / WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell));
-                
+                Vector3 wsVVector = PD.LiveMap[layer][cell].windVector - Vector3.Project(PD.LiveMap[layer][cell].windVector, cell.Position);
+                Delta_T = (float) ((Delta_T/ DeltaAltitude - L) * (GetCellVectorUpValue(PD.BufferMap[layer][cell].windVector, cell)) * WeatherFunctions.GetDeltaTime(PD.index) / WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell));
+                //                                       (Vector3.Dot(wsVVector, cell.Position) * wsVVector.magnitude)
 
                 /*
                   // TODO: enable D_wet_adb if needed
@@ -1783,8 +1789,10 @@ namespace Simulation
                 DI_V[layer] += (float)(4f * Math.PI * wCell.getDropletSize() * wCell.getDropletSize() * (N_cond[layer] + N_sscond[layer]) * DeltaTime / K_DROP);  // growth by condensation
                 DI_V[layer] += (float)(Math.PI *wCell.getDropletSize() * wCell.getDropletSize() *DI_S[layer] * DeltaTime * (condensedDew[layer]+depositedDew[layer]) / K_DROP2);  // growth by coalescence/collision
 
-                float windspeedUp = layer == 0 ? PD.BufferMap[layer][cell].windVector.y : PD.BufferMap[layer - 1][cell].windVector.y;
-                
+                float windspeedUp = layer == 0 ? (float)GetCellVectorUpValue(PD.BufferMap[layer][cell].windVector, cell)
+                                               : (float)GetCellVectorUpValue(PD.BufferMap[layer - 1][cell].windVector, cell);
+
+
                 if (wCell.cloud.getwaterContent() == 0)
                 { N_Prec_p[layer] = 0; }
                 else
@@ -1814,8 +1822,8 @@ namespace Simulation
                 WeatherCell wCellLive = PD.LiveMap[layer][cell];
                 if (layer != 0)
                 {
-                    double a = (1 - Math.Exp(-(getWsH(PD.LiveMap[layer - 1][cell])) * (DeltaTime) * K_CCN));
-                    double c = Math.Max(0, PD.LiveMap[layer - 1][cell].windVector.y * DeltaTime / DeltaAltitude);
+                    double a = (1 - Math.Exp(-(getWsH(PD.LiveMap[layer - 1][cell], cell)) * (DeltaTime) * K_CCN));
+                    double c = Math.Max(0, GetCellVectorUpValue(PD.LiveMap[layer - 1][cell].windVector, cell) * DeltaTime / DeltaAltitude); //mark
                     double b = Math.Exp(-(DeltaTime) * N_Prec[layer] * K_Prec); 
 
                     CCN[layer] = (float)((PD.LiveMap[layer - 1][cell].CCN - wCellLive.CCN) * Math.Min(a + c, 1f) + wCellLive.CCN * b);
@@ -2031,6 +2039,10 @@ namespace Simulation
             }
             #endregion
         }
+        private static double GetCellVectorUpValue(Vector3 input, Cell cell)
+        {
+            return Vector3d.Dot(input, cell.Position)*input.magnitude;
+        }
         private static float calcSoilRefractiveIndex(int database, Cell cell)
         {
             // TODO: refractive indexes are tied to a body atmosphere and surface liquid, have to be loaded instead of declared here 
@@ -2043,7 +2055,7 @@ namespace Simulation
             double p_polarizedRefr = (n1 * RefractionFactor - n2 * ReflectionFactor) / (n1 * RefractionFactor + n2 * ReflectionFactor);
             p_polarizedRefr *= p_polarizedRefr;
             return (float)(25 * (s_polarizedRefr + p_polarizedRefr) / 2.0
-                        / (25 + getWsH(WeatherDatabase.PlanetaryData[database].LiveMap[0][cell])));  
+                        / (25 + getWsH(WeatherDatabase.PlanetaryData[database].LiveMap[0][cell], cell)));  
             // includes correction for sea state caused by wind
         }
         internal static float calcAH(int database, float RH, float temperature)
@@ -2057,9 +2069,9 @@ namespace Simulation
         {
             return (ew * MolarMass / UGC / temperature);
         }
-        internal static float getWsH(WeatherCell wCell)
+        internal static float getWsH(WeatherCell wCell, Cell cell)
         {
-            return Mathf.Sqrt(wCell.windVector.x * wCell.windVector.x + wCell.windVector.z * wCell.windVector.z);
+            return (wCell.windVector - Vector3.Project(wCell.windVector, cell.Position)).magnitude;
         }
         internal static float ToTheFourth(float thing)
         {
