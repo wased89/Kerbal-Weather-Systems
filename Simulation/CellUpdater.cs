@@ -1001,8 +1001,8 @@ namespace Simulation
                     Vector3 cellWindHor = wCell.windVector - Vector3.Project(wCell.windVector, cell.Position);
                     Vector3 neighborWindHor = wCellNeighbor.windVector - Vector3.Project(wCellNeighbor.windVector, neighbor.Position);
 
-                    float myWindDirDot = Vector3.Dot(cellWindHor, cellDirVector);
-                    float neighborWindDirDot = Vector3.Dot(neighborWindHor, -cellDirVector);
+                    float myWindDirDot = Vector3.Dot(cellWindHor.normalized, cellDirVector.normalized);
+                    float neighborWindDirDot = Vector3.Dot(neighborWindHor.normalized, -cellDirVector.normalized);
                     double deltaPressure = wCell.pressure - Pressure_eq;
 
                     DP[layer][n] = deltaPressure;
@@ -1017,8 +1017,12 @@ namespace Simulation
 
                     //wsN[layer] += (float)(deltaPressure * CosDir);
                     //wsE[layer] += (float)(deltaPressure * SinDir);
-
+                    
                     wsDiv[layer] += neighborWindDirDot;  //NOTE: wsDiv is positive for wind exiting the current cell
+                    if(cell.Index == 0)
+                    {
+                        int i = 0;
+                    }
                     rotrstr += ((neighborWindHor * neighborWindDirDot)/cellDirVector.magnitude)*(float)DeltaTime;
                     //rotrStr[layer].x -= PD.LiveMap[layer][neighbor].windVector.x * SinDir / DeltaDistance;  // + = CW; - = CCW
                     //rotrStr[layer].z += PD.LiveMap[layer][neighbor].windVector.z * CosDir / DeltaDistance;
@@ -1123,7 +1127,7 @@ namespace Simulation
                     * Mu / D_wet[layer]) - WsGradWs) * DeltaTime/2 + Ws_V_ana[layer]);
                     */
                 Vector3 wsVVector = cellWindUp * ((((float)buoyancy[layer] + (float)DP_V[layer] - 
-                    (cellWindUp.magnitude * (float)Mu / D_wet[layer])) - WsGradVector.magnitude) * (float)DeltaTime/2 + Ws_V_ana[layer]);
+                    ((float)GetCellVectorUpValue(cellWindUp, cell) * (float)Mu / D_wet[layer])) - (float)GetCellVectorUpValue(WsGradVector, cell)) * (float)DeltaTime/2 + Ws_V_ana[layer]);
 
 
                 wCell.windVector = totalWindVector[layer] + wsVVector; //new Vector3(Total_N[layer], wsV, Total_E[layer]);
@@ -1178,7 +1182,7 @@ namespace Simulation
                     Logger("DeltaTime went wrong" + " @ cell: " + cell.Index);
                 }
                 //The V_Disp and H_Disp stuff are to do with Advection.
-                double TimeChargeV = Vector3.Dot(wsVVector, cell.Position) * (1.0 - Math.Exp(-(DeltaTime * wsVVector.magnitude / DeltaAltitude)));
+                double TimeChargeV = Vector3.Dot(wsVVector.normalized, cell.Position) * (1.0 - Math.Exp(-(DeltaTime * wsVVector.magnitude / DeltaAltitude)));
                 //double TimeChargeV = Math.Sign(wsVVector.magnitude)*(1.0 - Math.Exp(-Math.Abs(DeltaTime * wsVVector.magnitude / DeltaAltitude)));  // needed to stabilize V_disp from variance in DeltaTime
                 double TimeChargeH = Math.Sign(wsDiv[layer])*(1.0 - Math.Exp(-Math.Abs(DeltaTime * wsDiv[layer] / DeltaDistance)));  // needed to stabilize H_disp from variance in DeltaTime
                 
@@ -1187,7 +1191,7 @@ namespace Simulation
                 
                 if (layer > 0)  // go with layer below
                 {
-                    dynPressureBelow = Vector3.Dot(wsVVector, cell.Position) > 0 ? 0.5f * D_wet[layer-1] * wsVVector.sqrMagnitude: 0;  //TODO: for even more accuracy, use average wsV with layer below
+                    dynPressureBelow = Vector3.Dot(wsVVector.normalized, cell.Position) > 0 ? 0.5f * D_wet[layer-1] * wsVVector.sqrMagnitude: 0;  //TODO: for even more accuracy, use average wsV with layer below
 
                     double D_variance = TimeChargeV < 0 ? 1.0f : (float)((D_wet[layer] + D_wet[layer - 1] * TimeChargeV) / D_wet[layer]);
                     if (D_variance < 0)
@@ -1204,7 +1208,7 @@ namespace Simulation
                 }
                 if (layer < layerCount-1)  // go with layer above
                 {
-                    dynPressureAbove = Vector3.Dot(wsVVector, cell.Position) < 0 ? (0.5f * D_wet[layer + 1] * wsVVector.sqrMagnitude) : 0;  // dynamic pressure due to wind with layer above
+                    dynPressureAbove = Vector3.Dot(wsVVector.normalized, cell.Position) < 0 ? (0.5f * D_wet[layer + 1] * wsVVector.sqrMagnitude) : 0;  // dynamic pressure due to wind with layer above
                     double D_variance = TimeChargeV > 0 ? 1.0f : (float)((D_wet[layer] - D_wet[layer + 1] * TimeChargeV) / D_wet[layer]);
                     if (D_variance < 0)
                     {
@@ -1222,7 +1226,7 @@ namespace Simulation
                 {
                     double error = 0;
                     float D_dryStrato = (float)(WeatherFunctions.VdW(PD.atmoShit, PD.LiveStratoMap[0][cell].pressure, PD.LiveStratoMap[0][cell].temperature, out error));
-                    dynPressureAbove = Vector3.Dot(wsVVector, cell.Position) < 0 ? (0.5f * D_dryStrato * wsVVector.sqrMagnitude) : 0;  // dynamic pressure due to wind with layer above
+                    dynPressureAbove = Vector3.Dot(wsVVector.normalized, cell.Position) < 0 ? (0.5f * D_dryStrato * wsVVector.sqrMagnitude) : 0;  // dynamic pressure due to wind with layer above
                     double D_variance = TimeChargeV > 0 ? 1.0 : ((D_wet[layer] - D_dryStrato * TimeChargeV) / D_wet[layer]);
                     if (D_variance < 0)
                     {
@@ -1237,8 +1241,8 @@ namespace Simulation
                     }
                 }
                 // go with this layer
-                dynPressureLayer = (Vector3.Dot(wsVVector, cell.Position) > 0 || layer > 0) ? 0.5f * D_wet[layer] * wsVVector.magnitude : 0;
-                staticPressureChange = (float)(wCellLive.pressure * (staticPressureChange - ((Vector3.Dot(wsVVector, cell.Position) > 0 || layer > 0) ? Math.Abs(TimeChargeV) : 0)) / DeltaTime);
+                dynPressureLayer = (Vector3.Dot(wsVVector.normalized, cell.Position) > 0 || layer > 0) ? 0.5f * D_wet[layer] * (float)GetCellVectorUpValue(wsVVector, cell) : 0;
+                staticPressureChange = (float)(wCellLive.pressure * (staticPressureChange - ((Vector3.Dot(wsVVector.normalized, cell.Position) > 0 || layer > 0) ? Math.Abs(TimeChargeV) : 0)) / DeltaTime);
                 dynPressure[layer] += dynPressureAbove + dynPressureBelow - dynPressureLayer + staticPressureChange;
                 if (float.IsNaN(dynPressure[layer]))
                 {
@@ -1254,10 +1258,10 @@ namespace Simulation
                 #endregion
 
                 //calc V_disp
-                float V_disp_limit = (float)(TimeChargeV / staticPressureChange * (Vector3.Dot(wsVVector, cell.Position) < 0 ? dynPressureAbove : dynPressureBelow));
+                float V_disp_limit = (float)(TimeChargeV / staticPressureChange * (Vector3.Dot(wsVVector.normalized, cell.Position) < 0 ? dynPressureAbove : dynPressureBelow));
 
                 //V_Disp is the amount of mass that gets moved by the wind per DeltaTime, as a %
-                V_disp[layer] = (layer == 0 ? 0 : Mathf.Max(-V_disp_limit, Mathf.Min(V_disp_limit, (float)(wsVVector.magnitude * DeltaTime / DeltaAltitude))));
+                V_disp[layer] = (layer == 0 ? 0 : Mathf.Max(-V_disp_limit, Mathf.Min(V_disp_limit, (float)(GetCellVectorUpValue(wsVVector, cell) * DeltaTime / DeltaAltitude))));
 
                 if (float.IsNaN(V_disp[layer]))
                 {
@@ -1383,7 +1387,7 @@ namespace Simulation
                     float T_adv = 0;
                     //we need to find the negative dot product of the two vectors: cellVectors, neighborWindVector
                     Vector3 cellVector = cell.Position - neighbor.Position;
-                    float Ws_wC = Vector3.Dot(neighborWCell.windVector, -cellVector);
+                    float Ws_wC = Vector3.Dot(((Vector3)neighborWCell.windVector).normalized, -cellVector);
 
                     //calc D_wet_Diff
                     float Neighborew_eq = WeatherFunctions.getEwEq(PD.index, neighborWCell.temperature);
@@ -2041,7 +2045,7 @@ namespace Simulation
         }
         private static double GetCellVectorUpValue(Vector3 input, Cell cell)
         {
-            return Vector3d.Dot(input, cell.Position)*input.magnitude;
+            return Vector3d.Dot(input.normalized, cell.Position)*input.magnitude;
         }
         private static float calcSoilRefractiveIndex(int database, Cell cell)
         {
