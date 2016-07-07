@@ -35,17 +35,6 @@ namespace Simulation
         //example
         //debugData.Add("Temp: " + wcell.temperature); = "Temp: 317.221"
 
-        //How to get the neighbors and the vars from them
-        //Cell test = new Cell();
-        //Cell thing = test.GetNeighbors(PD.gridLevel).ToList()[0]; //where 0 is the first, just replace with the index you want
-        //WeatherCell wcell = PD.LiveMap[layer][thing]; //use the neighbor cell to get the weather cell
-        //Logger("Temperature: " + wcell.temperature); //debug log the temperature
-
-        //IEnumerable<Cell> cells = cell.GetNeighbors(); is a way of getting the neighbors as an array of enumerable objects 
-        //.ToList() or .ToArray() will give you a list or array
-
-        //TO NOTE: Im changing all the places where it would be for(int layer = 1) to for(int layer = 0) because this is no longer excluding the soil map, as that's been made seperate
-        //HOWEVER the values that would be stored in the float arrays ARE STAYING IN THE FLOAT ARRAYS, as such, all the array accesses are layer +1
 
         public static void UpdateCell(PlanetData PD, Cell cell)
         {
@@ -53,10 +42,8 @@ namespace Simulation
             List<String> debugLines = debugData;
 
 
-            //TODO: Write good code, omg this is a mega-method, I am sad
-            //DeltaTime measurement
             //Logger("Updating cell...");
-            //Init all the fuckers, here we go
+
             float latitude = WeatherFunctions.GetCellLatitude(cell);
             //float Q = 0f;
             float SWT = 0f;
@@ -187,7 +174,6 @@ namespace Simulation
                 {
                     neighbors[neighborIndex] = neighbor.Index;
                     float DeltaLon = WeatherFunctions.GetCellLongitude(neighbor) - WeatherFunctions.GetCellLongitude(cell);
-                    // float myLon = WeatherFunctions.GetCellLongitude(cell);
                     direction[neighborIndex] = Math.Atan2((DeltaLon > 180 ? DeltaLon - 360 : DeltaLon < -180 ? DeltaLon + 360 : DeltaLon), 
                         (WeatherFunctions.GetCellLatitude(neighbor) - latitude));
                     
@@ -199,13 +185,10 @@ namespace Simulation
                 }
             }
             
-
-
             // Logger("Var init complete");
             #region CloudsIR+SW
             //-------------------------CLOUDS IR AND SW------------------------\\
 
-            //CLOUDS CLOUDS CLOUDS CLOUDS CLOUDS CLOUDS???
             //cloud ir and sw
             //we start at 0 here because we're going through teh air maps, not including soil or strato
             for (int i = 0; i < layerCount; i++)
@@ -361,7 +344,6 @@ namespace Simulation
                 AH[i] = getAH(ew[i], PD.dewData.M, wCellLive.temperature);
                 AHDP[i] = getAH(ew_eq[i], PD.dewData.M, wCellLive.temperature);
 
-                //dwet = ((pressure - ew) * M + ew * M_water) / (UGC * temperature)
                 D_wet[i] = ((wCellLive.pressure - ew[i]) * PD.atmoData.M + ew[i] * PD.dewData.M) / (UGC * wCellLive.temperature);
 
                 if (float.IsInfinity(D_wet[i]))
@@ -422,16 +404,9 @@ namespace Simulation
 
             #endregion
             //Logger("LF complete");
-            #region ScaleHeightTemp + SW + IR calcs
-            //---------------------------SCALE HEIGHT--------------------------\\
-
-            //ScaleHeight stuff
-            //Logger("Scale Height started");
-            //scaleheight/temp = Kb/(M*g/(UGC/Kb))
-            //float scaleHeightTemp = (float)(PhysicsGlobals.BoltzmannConstant / (body.atmosphereMolarMass * G / (UGC / PhysicsGlobals.BoltzmannConstant)));
+            #region Thermal SW + IR calcs
 
             //SW calcs
-            //Logger("Scale Height SW");
             float SunriseFactor = WeatherFunctions.GetSunriseFactor(PD.index, cell);
             SWT = PD.irradiance * SunriseFactor;
             
@@ -492,7 +467,6 @@ namespace Simulation
             }
 
             //Longwave calcs
-            //Logger("Scale Height IR");
             //bottom up
             //soil IR calcs
             {
@@ -574,9 +548,6 @@ namespace Simulation
                     Logger("IRAU is Infinity" + " @ cell: " + cell.Index);
                 }
             }
-            #endregion
-            //Logger("Scaleheight done");
-            #region Infrared absorbed from downward cycle
             //more longwave stuff, Infrared absorbed from downward cycle
             //top down
             float IRADtemp = 0f;
@@ -595,7 +566,8 @@ namespace Simulation
                 IRADSoil = IRADtemp - IRRtemp;
             }
             #endregion
-            //Logger("IR down done");
+            //Logger("Thermal done");
+
             #region Dew Density
             //calc the density of the dew
 
@@ -795,7 +767,6 @@ namespace Simulation
                         }
                     }
 
-
                     N_sscond[AltLayer] = 0;
                     if (float.IsNaN(N_sscond[AltLayer]))
                     {
@@ -850,14 +821,13 @@ namespace Simulation
                     KWSerror = true;
                     Logger("Q_Cond is NaN" + " @ cell: " + cell.Index);
                 }
-
             }
             #endregion
             //Logger("Q_cond done");
 
 
 
-            #region TEMPFUCKMMMMMMM
+            #region TEMP
             //temperature = Math.Max(0, Layer(n).Heat / Layer(n).ThermalCap)
             //heat = thermalCap * cell.temperature + (SWA + IRAU - IRG + Q_cond) * dT
             //Q = thermalCap[AltLayer] * wCellLive.temperature + (SWA[AltLayer]);
@@ -880,7 +850,7 @@ namespace Simulation
             }
             //Logger("Q done");
 
-            //FINALLY GET THE DAMN TEMP
+            //FINALLY GET THE TEMP
             {//soil temp
                 SoilCell wCell = PD.BufferSoilMap[cell];
                 wCell.temperature = Mathf.Max(2.725f, QSoil / thermalCapSoil);
@@ -1906,7 +1876,6 @@ namespace Simulation
                     {
                         file.Write(String.Format("{0:00000}", neighbor.Index) + "     ");
                     }
-                    // file.WriteLine("<- neighbor index");
                     file.WriteLine();
                     file.WriteLine("Strat ");
                     for (int i = layerCount - 1; i >= 0; i--)
@@ -1942,7 +1911,6 @@ namespace Simulation
                         file.Write(String.Format("{0:+00.000000;-00.000000}", Total_E[i]) + " ");
                         file.Write(String.Format("{0:+000.000000;-000.000000}", buoyancy[i]) + " ");
                         file.Write(String.Format("{0:+000.000000;-000.000000}", DP_V[i]) + " ");
-                        // file.Write(String.Format("{0:+00.000000;-00.000000}", tensStr[i].y) + " ");
                         file.Write("(");
                         file.Write(String.Format("{0:+000.000;-000.000}", wind.x) + ", ");
                         file.Write(String.Format("{0:+000.000;-000.000}", wind.y) + ", ");

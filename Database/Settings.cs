@@ -27,32 +27,6 @@ namespace Database
             file.WriteLine(line);
             line = "statistics = " + SD.statistics;
             file.WriteLine(line);
-            line = "MWtemperature = " + SD.MWtemperature;
-            file.WriteLine(line);
-            line = "MWpressure = " + SD.MWpressure;
-            file.WriteLine(line);
-            line = "MWRH = " + SD.MWRH;
-            file.WriteLine(line);
-            line = "MWdensity = " + SD.MWdensity;
-            file.WriteLine(line);
-            line = "MWCCN = " + SD.MWCCN;
-            file.WriteLine(line);
-            line = "MWdDew = " + SD.MWdDew;
-            file.WriteLine(line);
-            line = "MWcDew = " + SD.MWcDew;
-            file.WriteLine(line);
-            line = "MWDropletSize = " + SD.MWDropletSize;
-            file.WriteLine(line);
-            line = "MWthickness = " + SD.MWthickness;
-            file.WriteLine(line);
-            line = "MWrainDuration = " + SD.MWrainDuration;
-            file.WriteLine(line);
-            line = "MWrainDecay = " + SD.MWrainDecay;
-            file.WriteLine(line);
-            line = "MWwindH = " + SD.MWwindH;
-            file.WriteLine(line);
-            line = "MWwindV = " + SD.MWwindV;
-            file.WriteLine(line);
             line = "SoilThCapMult = " + SD.SoilThCapMult;
             file.WriteLine(line);
             line = "AtmoThCapMult = " + SD.AtmoThCapMult;
@@ -108,84 +82,6 @@ namespace Database
                     SD.statistics = bool.Parse(line);
                     continue;
                 }
-                if (line.StartsWith("MWtemperature"))
-                {
-                    line = line.Substring(line.IndexOf("=") + 2);
-                    SD.MWtemperature = bool.Parse(line);
-                    continue;
-                }
-                if (line.StartsWith("MWpressure"))
-                {
-                    line = line.Substring(line.IndexOf("=") + 2);
-                    SD.MWpressure = bool.Parse(line);
-                    continue;
-                }
-                if (line.StartsWith("MWRH"))
-                {
-                    line = line.Substring(line.IndexOf("=") + 2);
-                    SD.MWRH = bool.Parse(line);
-                    continue;
-                }
-                if (line.StartsWith("MWdensity"))
-                {
-                    line = line.Substring(line.IndexOf("=") + 2);
-                    SD.MWdensity = bool.Parse(line);
-                    continue;
-                }
-                if (line.StartsWith("MWCCN"))
-                {
-                    line = line.Substring(line.IndexOf("=") + 2);
-                    SD.MWCCN = bool.Parse(line);
-                    continue;
-                }
-                if (line.StartsWith("MWdDew"))
-                {
-                    line = line.Substring(line.IndexOf("=") + 2);
-                    SD.MWdDew = bool.Parse(line);
-                    continue;
-                }
-                if (line.StartsWith("MWcDew"))
-                {
-                    line = line.Substring(line.IndexOf("=") + 2);
-                    SD.MWcDew = bool.Parse(line);
-                    continue;
-                }
-                if (line.StartsWith("MWDropletSize"))
-                {
-                    line = line.Substring(line.IndexOf("=") + 2);
-                    SD.MWDropletSize = bool.Parse(line);
-                    continue;
-                }
-                if (line.StartsWith("MWthickness"))
-                {
-                    line = line.Substring(line.IndexOf("=") + 2);
-                    SD.MWthickness = bool.Parse(line);
-                    continue;
-                }
-                if (line.StartsWith("MWrainDuration"))
-                {
-                    line = line.Substring(line.IndexOf("=") + 2);
-                    SD.MWrainDuration = bool.Parse(line);
-                    continue;
-                }
-                if (line.StartsWith("MWrainDecay"))
-                {
-                    line = line.Substring(line.IndexOf("=") + 2);
-                    SD.MWrainDecay = bool.Parse(line);
-                    continue;
-                }
-                if (line.StartsWith("MWwindH"))
-                {
-                    line = line.Substring(line.IndexOf("=") + 2);
-                    SD.MWwindH = bool.Parse(line);
-                    continue;
-                }
-                if (line.StartsWith("MWwindV"))
-                {
-                    line = line.Substring(line.IndexOf("=") + 2);
-                    SD.MWwindV = bool.Parse(line);
-                    continue;
-                }
                 if (line.StartsWith("SoilThCapMult"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
@@ -229,32 +125,6 @@ namespace Database
             line = "cellsPerUpdate = 5";
             file.WriteLine(line);
             line = "statistics = false";
-            file.WriteLine(line);
-            line = "MWtemperature = true";
-            file.WriteLine(line);
-            line = "MWpressure = false";
-            file.WriteLine(line);
-            line = "MWRH = false";
-            file.WriteLine(line);
-            line = "MWdensity = false";
-            file.WriteLine(line);
-            line = "MWCCN = false";
-            file.WriteLine(line);
-            line = "MWdDew = false";
-            file.WriteLine(line);
-            line = "MWcDew = false";
-            file.WriteLine(line);
-            line = "MWDropletSize = false";
-            file.WriteLine(line);
-            line = "MWthickness = false";
-            file.WriteLine(line);
-            line = "MWrainDuration = false";
-            file.WriteLine(line);
-            line = "MWrainDecay = false";
-            file.WriteLine(line);
-            line = "MWwindH = false";
-            file.WriteLine(line);
-            line = "MWwindV = false";
             file.WriteLine(line);
             line = "SoilThCapMult = 1";
             file.WriteLine(line);
