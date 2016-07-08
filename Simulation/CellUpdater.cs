@@ -1196,18 +1196,17 @@ namespace Simulation
 
             #region FRONTS
             //--------------------FRONTS----------------------\\
-            //Updated N_Dew
 
 
-            #region H_adv_S
-            //calc H_adv_s
             for (int layer = 0; layer < layerCount; layer++)
             {
+                WeatherCell wCell = PD.BufferMap[layer][cell];
                 //foreach neighbors
                 foreach (Cell neighbor in cell.GetNeighbors(PD.gridLevel))
                 {
                     WeatherCell neighborWCell = PD.LiveMap[layer][neighbor];
                     float H_adv = 0;
+                    float T_adv = 0;
                     //we need to find the negative dot product of the two vectors: cellVectors, neighborWindVector
                     Vector3 cellVector = cell.Position - neighbor.Position;
                     float Ws_wC = -Vector3.Dot(neighborWCell.windVector, cellVector); //the amount fo wind coming to us
@@ -1225,23 +1224,25 @@ namespace Simulation
                     if (Ws_wC > 0 && Mathf.Abs(D_wet_Diff) > D_DIFF)
                     {
                         H_adv = Ws_wC * (neighborWCell.N_Dew - N_dew[layer]) * 0.8f; //0.8 because cold front moves faster
+                        T_adv = Ws_wC * (neighborWCell.temperature - wCell.temperature) * 0.8f;
                     }
-                    if (D_wet_Diff < 0)
+                    if (D_wet_Diff < 0) //warm front, takes the 0.8 and halves it essentially
                     {
                         H_adv /= 2;
+                        T_adv /= 2;
                     }
-                    
+
                     H_adv_S[layer] += H_adv;
+                    T_adv_S[layer] += T_adv;
                 }
 
-                H_adv_S[layer] *= (float)(DeltaTime
-                    / WeatherFunctions.GetDistanceBetweenCells(PD.index, cell, cell.GetNeighbors(PD.gridLevel).First(), WeatherFunctions.GetCellAltitude(PD.index, layer, cell)));
+                H_adv_S[layer] *= (float)(DeltaTime / WeatherFunctions.GetDistanceBetweenCells(PD.index, cell, cell.GetNeighbors(PD.gridLevel).First(), WeatherFunctions.GetCellAltitude(PD.index, layer, cell)));
+                T_adv_S[layer] *= (float)(DeltaTime / WeatherFunctions.GetDistanceBetweenCells(PD.index, cell, cell.GetNeighbors(PD.gridLevel).First(), WeatherFunctions.GetCellAltitude(PD.index, layer, cell)));
 
             }
-            #endregion
 
 
-            //calc H_disp
+            //calc H_disp (horizontal displacement, advection rate due to incoming airmass)
             // TODO: introduce H_disp limit = dynPressure / staticPressureChange * TimeChargeH; dynPressure = 0.5f * D_wet[layer] * wsH * Math.Abs(wsH);
             for (int layer = 0; layer < layerCount; layer++)
             {
@@ -1262,7 +1263,7 @@ namespace Simulation
                 }
             }
 
-            //update N_Dew
+            //update N_Dew due to advection
             for (int layer = 0; layer < layerCount; layer++)
             {
                 N_dew[layer] += H_adv_S[layer];
@@ -1291,46 +1292,9 @@ namespace Simulation
                 RH[i] = Mathf.Min(RH[i], 4f);
             }
 
-            //Temperature part
             for (int layer = 0; layer < layerCount; layer++)
             {
                 WeatherCell wCell = PD.BufferMap[layer][cell];
-
-                foreach (Cell neighbor in cell.GetNeighbors(PD.gridLevel))
-                {
-                    WeatherCell neighborWCell = PD.LiveMap[layer][neighbor];
-                    float T_adv = 0;
-                    //we need to find the negative dot product of the two vectors: cellVectors, neighborWindVector
-                    Vector3 cellVector = cell.Position - neighbor.Position;
-                    float Ws_wC = -Vector3.Dot(neighborWCell.windVector, cellVector);
-
-                    //calc D_wet_Diff
-                    float Neighborew_eq = WeatherFunctions.getEwEq(PD.index, neighborWCell.temperature);
-                    float neighborEw = Neighborew_eq * neighborWCell.relativeHumidity; 
-                    float neighborD_Wet = (((neighborWCell.pressure - neighborEw)
-                        * PD.atmoData.M + neighborEw * PD.atmoData.M) / (UGC * neighborWCell.temperature));
-
-
-                    float D_wet_Diff = (neighborD_Wet - D_wet[layer]) / D_wet[0];
-
-                    if (Ws_wC > 0 && Mathf.Abs(D_wet_Diff) > D_DIFF)
-                    {
-                        T_adv = Ws_wC * (neighborWCell.temperature - wCell.temperature) * 0.8f; //0.8 because cold front moves faster
-                    }
-                    if (D_wet_Diff < 0) //warm front, takes the 0.8 and halves it essentially
-                    {
-                        T_adv /= 2;
-                    }
-
-
-                    T_adv_S[layer] += T_adv;
-
-                }
-                T_adv_S[layer] *= (float)(DeltaTime
-                    / (WeatherFunctions.GetDistanceBetweenCells(PD.index, cell, cell.GetNeighbors(PD.gridLevel).First(), WeatherFunctions.GetCellAltitude(PD.index, layer, cell))));
-
-                T_disp[layer] = 0;
-
 
 
                 if (RH[layer] <= 1.0f)
@@ -1413,7 +1377,7 @@ namespace Simulation
                   D_wet[layer] += D_wet_adb * V_disp[layer]);  // this is where D_wet is updated due to adiabatic compression/expansion, if required
                 */
                 
-
+                // update temperature due to advection
                 T_disp[layer] = (Delta_T * V_disp[layer]);
 
                 wCell.temperature += T_adv_S[layer] + T_disp[layer];
