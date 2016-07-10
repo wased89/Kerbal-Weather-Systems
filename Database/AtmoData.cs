@@ -15,6 +15,13 @@ namespace Database
         public float IRA; //0.55 for kerbin something to do with the averaging of the bounces that would happen from the rays
         public float M; //molar mass of air
 
-        public float k; //thermal conductivity
+        public float ks; //thermal conductivity as a gas
+
+        public float n1; // refractive index (real part)
+        // public float Xi_SW; // refractive index (imaginary part, visible band)
+        // public float Xi_IR; // refractive index (imaginary part, IR band)
+
+        public float a_VdW; // average attraction between particles (Van der Waals equation)
+        public float b_VdW; // volume excluded by a mole of particles (Van der Waals equation)
     }
 }

@@ -313,8 +313,10 @@ namespace KerbalWeatherSystems
             // double b = substance.volume_excluded; // (m³ / mol)
             // double a = 0.5536f;  // stopgap for water
             // double b = 3.049E-5; // stopgap for water
-            double a = 0.137324802f; // stopgap for air 
-            double b = 3.720601E-5; // stopgap for air
+            // double a = 0.137324802f; // stopgap for air 
+            // double b = 3.720601E-5; // stopgap for air
+            double a = substance.a_VdW;
+            double b = substance.b_VdW;
             float M = substance.M;
             double n = pressure / temperature / CellUpdater.UGC;
             double Dideal = n * M;
