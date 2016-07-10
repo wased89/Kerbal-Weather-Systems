@@ -711,19 +711,31 @@ namespace Database
                 if (line.StartsWith("a_VdW"))
                 {
                     line = line.Substring(line.IndexOf("=") + 1);
-                    PD.atmoData.n1 = float.Parse(line);
+                    PD.atmoData.a_VdW = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("b_VdW"))
                 {
                     line = line.Substring(line.IndexOf("=") + 1);
-                    PD.atmoData.n1 = float.Parse(line);
+                    PD.atmoData.b_VdW = float.Parse(line);
                     continue;
                 }
             }
             file = new StreamReader(KSPUtil.ApplicationRootPath + "/GameData/KerbalWeatherSystems/BodyData/Kerbin/DewData.cfg");
             while ((line = file.ReadLine()) != null)
             {
+                if (line.StartsWith("name"))
+                {
+                    line = line.Substring(line.IndexOf("=") + 2);
+                    PD.dewData.name = line;
+                    continue;
+                }
+                if (line.StartsWith("formula"))
+                {
+                    line = line.Substring(line.IndexOf("=") + 2);
+                    PD.dewData.formula = line;
+                    continue;
+                }
                 if (line.StartsWith("A1"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
@@ -817,7 +829,7 @@ namespace Database
                 if (line.StartsWith("ks"))
                 {
                     line = line.Substring(line.IndexOf("=") + 1);
-                    PD.atmoData.ks = float.Parse(line);
+                    PD.dewData.ks = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("T_fr"))
@@ -841,19 +853,19 @@ namespace Database
                 if (line.StartsWith("n1"))
                 {
                     line = line.Substring(line.IndexOf("=") + 1);
-                    PD.atmoData.n1 = float.Parse(line);
+                    PD.dewData.n1 = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("a_VdW"))
                 {
                     line = line.Substring(line.IndexOf("=") + 1);
-                    PD.atmoData.n1 = float.Parse(line);
+                    PD.dewData.a_VdW = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("b_VdW"))
                 {
                     line = line.Substring(line.IndexOf("=") + 1);
-                    PD.atmoData.n1 = float.Parse(line);
+                    PD.dewData.b_VdW = float.Parse(line);
                     continue;
                 }
             }
