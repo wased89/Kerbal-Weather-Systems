@@ -23,23 +23,23 @@ namespace KerbalWeatherSystems
         {
             return (float)(Math.Sqrt(Vector3d.Dot(a.Position, b.Position)) * (WeatherDatabase.PlanetaryData[database].body.Radius + altitude));
         }
-        
-        public static Vector3 GetTheFuckingUpVector(int database, Cell cell)
+        // useless, however more efficiently done with: return new Vector3((float)cell.Position.x, (float)cell.Position.y, (float)cell.Position.z);
+        /*public static Vector3 GetTheFuckingUpVector(int database, Cell cell)
         {
             float latitude = GetCellLatitude(cell);
             float longitude = GetCellLongitude(cell);
             return new Vector3(Mathf.Cos(latitude * Mathf.Deg2Rad) * Mathf.Cos(longitude * Mathf.Deg2Rad),
                 Mathf.Sin(latitude * Mathf.Deg2Rad),Mathf.Cos(latitude*Mathf.Deg2Rad) * Mathf.Sin(longitude * Mathf.Deg2Rad));
         }
-
-        public static Vector3 GetTheFuckingUpVector(float latitude, float longitude)
+        */
+        public static Vector3 GetTheUpVector(float latitude, float longitude)
         {
             return new Vector3(Mathf.Cos(latitude * Mathf.Deg2Rad) * Mathf.Cos(longitude * Mathf.Deg2Rad),
                 Mathf.Sin(latitude * Mathf.Deg2Rad), Mathf.Cos(latitude * Mathf.Deg2Rad) * Mathf.Sin(longitude * Mathf.Deg2Rad));
         }
         public static Cell GetCellFromLatLong(int database, float lat, float lon)
         {
-           return Cell.Containing(-GetTheFuckingUpVector(lat, lon).normalized, 
+           return Cell.Containing(-GetTheUpVector(lat, lon).normalized, 
                 WeatherDatabase.PlanetaryData[database].gridLevel);
         }
 
@@ -135,7 +135,7 @@ namespace KerbalWeatherSystems
 
         public static float GetCellLatitude(Cell cell)
         {
-            return 90f - (float)(Math.Acos(cell.Position.y) * 180 / Math.PI);
+            return (float)(Math.Asin(cell.Position.y) * 180 / Math.PI);
         }
 
         public static float GetCellAltitude(int database, int AltLayer, Cell cell) //soil should be layer 0, strato layers is Livemap.count + current strato layer
@@ -312,10 +312,6 @@ namespace KerbalWeatherSystems
             // NOTE: database substances must have data for a = particles_attraction; b = volume_excluded
             // double a = substance.particles_attraction; // (J * m³ / mol²)
             // double b = substance.volume_excluded; // (m³ / mol)
-            // double a = 0.5536f;  // stopgap for water
-            // double b = 3.049E-5; // stopgap for water
-            // double a = 0.137324802f; // stopgap for air 
-            // double b = 3.720601E-5; // stopgap for air
             double a = substance.a_VdW;
             double b = substance.b_VdW;
             float M = substance.M;
