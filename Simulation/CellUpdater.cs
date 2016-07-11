@@ -1918,13 +1918,14 @@ namespace Simulation
                     }
                     file.WriteLine();
 
-                    file.WriteLine(" cell vertices");
+                    file.WriteLine("                cell vertices                                 distance from cell center");
                     foreach (Vector3d Vertices in cell.GetVertices(PD.gridLevel))
                     {
                         file.Write("(");
-                        file.Write(String.Format("{0:+000.000000;-000.000000}", Vertices.x) + ", ");
-                        file.Write(String.Format("{0:+000.000000;-000.000000}", Vertices.y) + ", ");
-                        file.Write(String.Format("{0:+000.000000;-000.000000}", Vertices.z) + ") ");
+                        file.Write(String.Format("{0:+0.000,000,000,000,000;-0.000,000,000,000,000}", Vertices.x) + ", ");
+                        file.Write(String.Format("{0:+0.000,000,000,000,000;-0.000,000,000,000,000}", Vertices.y) + ", ");
+                        file.Write(String.Format("{0:+0.000,000,000,000,000;-0.000,000,000,000,000}", Vertices.z) + ")   ");
+                        file.Write("  " + Math.Sqrt((Vertices.x - cell.Position.x)*(Vertices.x - cell.Position.x)+(Vertices.y-cell.Position.y)*(Vertices.y - cell.Position.y)+(Vertices.z - cell.Position.z)*(Vertices.z - cell.Position.z))*PD.body.Radius);
                         file.WriteLine();
                     }
                     file.WriteLine();

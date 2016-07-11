@@ -366,7 +366,7 @@ namespace Simulation
                         wCell.CCN = 1;
                         
                         wCell.pressure = basePressure;
-                        wCell.relativeHumidity = (PD.biomeDatas[WeatherFunctions.GetBiome(PD.index, cell)].FLC * wCell.temperature / 288.15f) * 0.9f;
+                        wCell.relativeHumidity = PD.biomeDatas[WeatherFunctions.GetBiome(PD.index, cell)].FLC * 0.85f;  //* wCell.temperature / 288.15f
                     }
                     else
                     {

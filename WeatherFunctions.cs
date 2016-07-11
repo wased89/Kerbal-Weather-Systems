@@ -175,7 +175,8 @@ namespace KerbalWeatherSystems
             sub.Normalize();
             return Mathf.Rad2Deg * Math.Acos(Mathf.Clamp(Vector3.Dot(cellPos, sub), -1f, 1f));
         }
-        public static float GetCellArea(int database, int AltLayer, Cell cell)
+        /*
+        public static float GetCellArea(int database, int AltLayer, Cell cell)  //TODO: this holds true only for regular polygons, however hexagons often aren't
         {
             Cell neighbor = cell.GetNeighbors(WeatherDatabase.PlanetaryData[database].gridLevel).First();
             int neighborCount = cell.GetNeighbors(WeatherDatabase.PlanetaryData[database].gridLevel).ToList().Count;
@@ -185,7 +186,8 @@ namespace KerbalWeatherSystems
             return neighborCount == 6 ? (float)((distance / Math.Sqrt(3)) * distance * (3f / 2f))
                 : (float)((distance * Math.Sqrt(5 - 2 * Math.Sqrt(5))) * distance * 5f / 4f);
         }
-        public static float GetCellPerimeter(int database, int AltLayer, Cell cell)
+        
+        public static float GetCellPerimeter(int database, int AltLayer, Cell cell)  //TODO: redo to consider non-regular cell hexagons
         {
             Cell neighbor = cell.GetNeighbors(WeatherDatabase.PlanetaryData[database].gridLevel).First();
             int neighborCount = cell.GetNeighbors(WeatherDatabase.PlanetaryData[database].gridLevel).ToList().Count;
@@ -195,6 +197,7 @@ namespace KerbalWeatherSystems
             return neighborCount == 6 ? (float)(distance / Math.Sqrt(3)) * neighborCount 
                 : (float)(distance * Math.Sqrt(5 - 2 * Math.Sqrt(5)) * neighborCount);
         }
+        */
         public static float SphereSize2Volume(float size)
         {
             return (float)(4.0 / 3.0 * Math.PI * size*size*size);
