@@ -378,6 +378,7 @@ namespace Simulation
                     }
                     
                     wCell.windVector = new Vector3(0f, 0f, 0f);
+                    wCell.flowPChange = 0;
                     tempMap[AltLayer][cell] = wCell;
                 }
             }

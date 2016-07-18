@@ -590,6 +590,7 @@ namespace Overlay
             DDD /= n;
             DDD2 /= n;
             GUILayout.Label("ΔDistanceδ: " + Math.Sqrt(Math.Abs(DDD2 - DDD * DDD)) / DDD);
+            GUILayout.Label("flowPChange: " + PD.LiveMap[currentLayer][cell].flowPChange);
             GUILayout.EndVertical();
 
         }

@@ -180,7 +180,7 @@ namespace Simulation
 
             double DeltaTime = WeatherFunctions.GetDeltaTime(PD.index);  
             double DeltaAltitude = WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell);
-            double DeltaDistance_Avg = 0.0;
+            double[] DeltaDistance_Avg = new double[layerCount];
 
             {
                 int neighborIndex = 0;
@@ -1034,9 +1034,7 @@ namespace Simulation
 
                 }
                 Divg[layer] /= n;
-                
-
-                // float DPInt = Mathf.Sqrt((wsN[layer] * wsN[layer]) + (wsE[layer] * wsE[layer]));
+                DeltaDistance_Avg[layer] /= n;
 
                 // float DPacc = DPInt / D_wet[layer];
 
@@ -1185,6 +1183,7 @@ namespace Simulation
                 double TimeChargeV = Vector3.Dot(wsVVector.normalized, cell.Position) * (1.0 - Math.Exp(-(DeltaTime * wsVVector.magnitude / DeltaAltitude)));
                 //double TimeChargeV = Math.Sign(wsVVector.magnitude)*(1.0 - Math.Exp(-Math.Abs(DeltaTime * wsVVector.magnitude / DeltaAltitude)));  // needed to stabilize V_disp from variance in DeltaTime
                 double TimeChargeH = Math.Sign(wsDiv[layer])*(1.0 - Math.Exp(-Math.Abs(DeltaTime * wsDiv[layer] / DeltaDistance)));  // needed to stabilize H_disp from variance in DeltaTime
+
                 
                 dynPressure[layer] = (float)(0.5f * D_wet[layer] * -wsDiv[layer] * Math.Abs(wsDiv[layer])); // horizontal dynamicPressure
                 staticPressureChange = (float)-TimeChargeH;  // static pressure change (%) due to horizontal flow
@@ -1244,6 +1243,9 @@ namespace Simulation
                 dynPressureLayer = (Vector3.Dot(wsVVector.normalized, cell.Position) > 0 || layer > 0) ? 0.5f * D_wet[layer] * (float)GetCellVectorUpValue(wsVVector, cell) : 0;
                 staticPressureChange = (float)(wCellLive.pressure * (staticPressureChange - ((Vector3.Dot(wsVVector.normalized, cell.Position) > 0 || layer > 0) ? Math.Abs(TimeChargeV) : 0)) / DeltaTime);
                 dynPressure[layer] += dynPressureAbove + dynPressureBelow - dynPressureLayer + staticPressureChange;
+                float flowPChangeKept = 0.78f;  //TODO: find the correct value for any DeltaTime to keep wind from ever-increasing and from oscillating (0.78 = best for DT = 8.2s)
+                wCell.flowPChange = wCell.flowPChange * flowPChangeKept + staticPressureChange;  
+                dynPressure[layer] += dynPressureAbove + dynPressureBelow - dynPressureLayer + wCell.flowPChange;
                 if (float.IsNaN(dynPressure[layer]))
                 {
                     KWSerror = true;
@@ -1268,7 +1270,7 @@ namespace Simulation
                     KWSerror = true;
                     Logger("V_disp is NaN" + " @ cell: " + cell.Index);
                 }
-                
+                PD.BufferMap[layer][cell] = wCell;
             }
             #endregion
 
