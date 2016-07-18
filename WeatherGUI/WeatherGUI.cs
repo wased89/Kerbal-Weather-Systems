@@ -62,7 +62,7 @@ namespace WeatherGUI
                 GUILayout.Label("Rel Humidity: " + WeatherFunctions.GetCellRH(PD.index, currentLayer, cell) * 100 + " %");
                 GUILayout.Label("Air Density: " + String.Format("{0:0.000000}", WeatherFunctions.D_Wet(PD.index, cell, currentLayer)) + " Kg/m³");
                 GUILayout.Label("wind horz: " + String.Format("{0:0.0000}", WeatherFunctions.GetCellwindH(PD.index, currentLayer, cell)) + " m/s");
-                GUILayout.Label("wind Dir : " + String.Format("{0:000.0}", WeatherFunctions.GetCellwindDir(PD.index, currentLayer, cell)) + " °");
+                //GUILayout.Label("wind Dir : " + String.Format("{0:000.0}", WeatherFunctions.GetCellwindDir(PD.index, currentLayer, cell)) + " °"); //broken with new wind
                 GUILayout.Label("wind vert : " + String.Format("{0:+0.00000;-0.00000}", WeatherFunctions.GetCellwindV(PD.index, currentLayer, cell)) + " m/s");
                 GUILayout.Label("CCN : " + WeatherFunctions.GetCellCCN(PD.index, currentLayer, cell) * 100 + " %");
                 GUILayout.Label("Cloud water : " + WeatherFunctions.GetCellWaterContent(PD.index, currentLayer, cell) + " Kg/m³");
