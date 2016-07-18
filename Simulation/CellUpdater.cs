@@ -456,7 +456,7 @@ namespace Simulation
                 SoilReflection = 0f;
                 if (PD.biomeDatas[WeatherFunctions.GetBiome(PD.index, cell)].FLC > 0.9) // biome must be very shiny for reflection, liquid surfaces do
                 {
-                    SoilReflection = calcSoilRefractiveIndex(PD.index, cell);
+                    SoilReflection = calcSoilRefractiveIndex(PD.index, cell, PD.atmoData.n1, PD.dewData.n1);
                 }
                 SWRSoil = SWX[0] * Mathf.Max(PD.biomeDatas[WeatherFunctions.GetBiome(PD.index, cell)].Albedo, SoilReflection);
                 SWASoil = SWX[0] - SWRSoil;
@@ -1661,8 +1661,8 @@ namespace Simulation
                 float N_Melt = 1.0f;
                 if (Math.Abs(cloud.dropletSize) > 4)
                 {
-                    float TimeMelt = (float)Math.Abs(PD.dewData.hm * PD.dewData.Ds / 3.0f / (wCell.temperature - PD.dewData.T_m)
-                        / PD.atmoData.k * Math.Pow((wCell.getDropletSize() / Math.PI), 2));
+                    float TimeMelt = (float)Math.Abs(PD.dewData.hm * PD.dewData.Ds / 3.0f / (wCell.temperature - PD.dewData.T_m) 
+                        / PD.atmoData.ks * ((wCell.getDropletSize() / Math.PI) * (wCell.getDropletSize() / Math.PI)));
                     // amount frozen/melted in cycle
                     N_Melt = (Mathf.Clamp((float)(DeltaTime / TimeMelt), 0, 1.0f));
                 }
@@ -1981,11 +1981,10 @@ namespace Simulation
         {
             return Vector3d.Dot(input.normalized, cell.Position) * input.magnitude;
         }
-        private static float calcSoilRefractiveIndex(int database, Cell cell)
+        private static float calcSoilRefractiveIndex(int database, Cell cell, float n1, float n2)
         {
-            // TODO: refractive indexes are tied to a body atmosphere and surface liquid, have to be loaded instead of declared here 
-            float n1 = 1.000293f; // refractive index of air
-            float n2 = 1.333f; // refractive index of water
+            //n1 = refractive index of atmosphere (e.g. air = 1.000293)
+            //n2 = refractive index of dew (e.g. water = 1.333)
             double ReflectionFactor = WeatherFunctions.GetSunriseFactor(database, cell);  // let's not make this call each time
             double RefractionFactor = Math.Sqrt(1 - (n1 * n1 / n2 / n2) * (1f - ReflectionFactor * ReflectionFactor));
             double s_polarizedRefr = (n1 * ReflectionFactor - n2 * RefractionFactor) / (n1 * ReflectionFactor + n2 * RefractionFactor);

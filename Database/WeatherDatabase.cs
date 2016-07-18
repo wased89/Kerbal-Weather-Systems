@@ -696,10 +696,28 @@ namespace Database
                     PD.atmoData.M = float.Parse(line);
                     continue;
                 }
-                if (line.StartsWith("k"))
+                if (line.StartsWith("ks"))
                 {
                     line = line.Substring(line.IndexOf("=") + 1);
-                    PD.atmoData.k = float.Parse(line);
+                    PD.atmoData.ks = float.Parse(line);
+                    continue;
+                }
+                if (line.StartsWith("n1"))
+                {
+                    line = line.Substring(line.IndexOf("=") + 1);
+                    PD.atmoData.n1 = float.Parse(line);
+                    continue;
+                }
+                if (line.StartsWith("a_VdW"))
+                {
+                    line = line.Substring(line.IndexOf("=") + 1);
+                    PD.atmoData.n1 = float.Parse(line);
+                    continue;
+                }
+                if (line.StartsWith("b_VdW"))
+                {
+                    line = line.Substring(line.IndexOf("=") + 1);
+                    PD.atmoData.n1 = float.Parse(line);
                     continue;
                 }
             }
@@ -796,6 +814,12 @@ namespace Database
                     PD.dewData.Ds = float.Parse(line);
                     continue;
                 }
+                if (line.StartsWith("ks"))
+                {
+                    line = line.Substring(line.IndexOf("=") + 1);
+                    PD.atmoData.ks = float.Parse(line);
+                    continue;
+                }
                 if (line.StartsWith("T_fr"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
@@ -812,6 +836,24 @@ namespace Database
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
                     PD.dewData.T_b = float.Parse(line);
+                    continue;
+                }
+                if (line.StartsWith("n1"))
+                {
+                    line = line.Substring(line.IndexOf("=") + 1);
+                    PD.atmoData.n1 = float.Parse(line);
+                    continue;
+                }
+                if (line.StartsWith("a_VdW"))
+                {
+                    line = line.Substring(line.IndexOf("=") + 1);
+                    PD.atmoData.n1 = float.Parse(line);
+                    continue;
+                }
+                if (line.StartsWith("b_VdW"))
+                {
+                    line = line.Substring(line.IndexOf("=") + 1);
+                    PD.atmoData.n1 = float.Parse(line);
                     continue;
                 }
             }
