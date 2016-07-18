@@ -11,6 +11,8 @@ namespace KerbalWeatherSystems
 {
     public class WeatherFunctions
     {
+        internal static float UGC = 8.3144621f;
+
         public static double GetDeltaTime(int database)
         {
             return WeatherDatabase.PlanetaryData[database].updateTime;
@@ -243,7 +245,7 @@ namespace KerbalWeatherSystems
             }
             return index;
         }
-        public static double density(int database, Vessel vessel)
+        public static double DensityAtVessel(int database, Vessel vessel)
         {
             PlanetData PD = WeatherDatabase.PlanetaryData[database];
             Cell cell = GetCellFromLatLong(database, (float)(vessel.latitude), (float)(vessel.longitude));
@@ -253,14 +255,25 @@ namespace KerbalWeatherSystems
             }
             else
             {
-                return D_Wet(database, cell, vessel.altitude);
+                return D_Wet(database, cell, GetLayerAtAltitude(database, (float)vessel.altitude, cell));
             }
         }
-        internal static double D_Wet(int database, Cell cell, double altitude)  //TODO: provide public access for D_wet (at any altitude)
+        public static int GetLayerAtAltitude(int database, float altitude, Cell cell)
+        {
+            if(altitude > (WeatherDatabase.PlanetaryData[database].LiveMap.Count + WeatherDatabase.PlanetaryData[database].LiveStratoMap.Count)*GetDeltaLayerAltitude(database, cell))
+            {
+                return WeatherDatabase.PlanetaryData[database].LiveStratoMap.Count-1;
+            }
+            else
+            {
+                return (int)(altitude / GetDeltaLayerAltitude(database, cell));
+            }
+        }
+        internal static double D_Wet(int database, Cell cell, int layer)  //TODO: provide public access for D_wet (at any altitude)
         {  // to: find D_wet above and below required altitude; interpolate for P at that altitude and compute with P/rho^k_ad = constant (ideal gas law)
             PlanetData PD = WeatherDatabase.PlanetaryData[database];
             float deltaAltitude = GetDeltaLayerAltitude(database, cell);
-            byte layer = (byte)(Math.Truncate(altitude / deltaAltitude));
+            float altitude= layer * deltaAltitude;
             float altitudeRem = (float)(altitude - layer * deltaAltitude);
             if (layer < PD.LiveMap.Count) // troposphere: compute density with interpolation of relativeHumidity
             {
@@ -278,10 +291,10 @@ namespace KerbalWeatherSystems
                 }
                 float RHint = PD.LiveMap[layer][cell].relativeHumidity + RHRate * altitudeRem;
                 float Tint = PD.LiveMap[layer][cell].temperature + LapseRate * altitudeRem;
-                float Pint = (float)(PD.LiveMap[layer][cell].pressure * Math.Exp(-altitudeRem / (PD.SHF * Tint)));
+                float Pint = (float)(PD.LiveMap[layer][cell].pressure * Math.Exp(-altitudeRem / (SH(PD.index, layer, Tint, cell))));
                 double ew_eq = getEwEq(database, Tint);
                 double ew = ew_eq * RHint;
-                return ((Pint - ew) * PD.atmoShit.M + ew * PD.dewShit.M) / (CellUpdater.UGC * Tint);
+                return ((Pint - ew) * PD.atmoData.M + ew * PD.dewData.M) / (CellUpdater.UGC * Tint);
             }
             else  // stratosphere
             {
@@ -294,14 +307,14 @@ namespace KerbalWeatherSystems
             PlanetData PD = WeatherDatabase.PlanetaryData[database];
             if (temperature >= 304)
             {
-                return Mathf.Pow(10, PD.dewShit.A1 - PD.dewShit.B1 / (temperature + PD.dewShit.C1));
+                return Mathf.Pow(10, PD.dewData.A1 - PD.dewData.B1 / (temperature + PD.dewData.C1));
             }
             else
             {
-                return Mathf.Pow(10, PD.dewShit.A2 - PD.dewShit.B2 / (temperature + PD.dewShit.C2));
+                return Mathf.Pow(10, PD.dewData.A2 - PD.dewData.B2 / (temperature + PD.dewData.C2));
             }
         }
-        public static double VdW(AtmoShit substance,  float pressure, float temperature, out double error)  // computes gas density according to real gas equation
+        public static double VdW(AtmoData substance,  float pressure, float temperature, out double error)  // computes gas density according to real gas equation
         {
             /*
             Density of a gas substance (ρ) = m/V; mass of substance (m); amount of substance in moles (n) = m/M
@@ -324,6 +337,24 @@ namespace KerbalWeatherSystems
             double Dcorr = (Pcorr)/temperature*M/CellUpdater.UGC*Vcorr;
             error = (Dcorr - Dideal) / Dcorr;  // gives how much error is done with the ideal gas law
             return Dcorr;
+        }
+        public static double SH(int database, int layer, float temperature, Cell cell)
+        {
+            PlanetData PD = WeatherDatabase.PlanetaryData[database];
+            return CellUpdater.UGC * PD.SH_correction / PD.atmoData.M / (float)G(PD.index, layer, cell) * temperature;
+        }
+        public static double G(int database, int layer, Cell cell)
+        {
+            PlanetData PD = WeatherDatabase.PlanetaryData[database];
+            return PD.body.gravParameter / ((PD.body.Radius + (layer * GetDeltaLayerAltitude(database, cell))) * (PD.body.Radius + (layer * GetDeltaLayerAltitude(database, cell))));
+        }
+        internal static Vector3 GetHorizontalVector(int database, Cell cell, Vector3 vector) //gets the horizontal vector of a vector relative to the cell in planet space
+        {
+            return vector - Vector3.Project(vector, cell.Position);
+        }
+        internal static Vector3 GetVerticalVector(int database, Cell cell, Vector3 vector)//gets the vertical vector of a vector relative to the cell in planet space
+        {
+            return Vector3.Project(vector, cell.Position);
         }
     }
 }

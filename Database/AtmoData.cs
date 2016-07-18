@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Database
 {
-    public class AtmoShit
+    public class AtmoData
     {
         public float specificHeatGas; //specific heat for the atmosphere
         public float specificHeatLiquid; //specific heat of water

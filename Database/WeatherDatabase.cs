@@ -602,8 +602,8 @@ namespace Database
             String line = null;
             StreamReader file = new StreamReader(KSPUtil.ApplicationRootPath + "/GameData/KerbalWeatherSystems/BodyData/Kerbin/PlanetaryData.cfg");
             PlanetData PD = new PlanetData();
-            PD.dewShit = new DewShit();
-            PD.atmoShit = new AtmoShit();
+            PD.dewData = new DewData();
+            PD.atmoData = new AtmoData();
             #region filereading
             while ((line = file.ReadLine()) != null)
             {
@@ -624,12 +624,6 @@ namespace Database
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
                     PD.gridLevel = int.Parse(line);
-                    continue;
-                }
-                if (line.StartsWith("g "))
-                {
-                    line = line.Substring(line.IndexOf("=") + 2);
-                    PD.G = float.Parse(line);
                     continue;
                 }
                 if(line.StartsWith("layers"))
@@ -661,156 +655,163 @@ namespace Database
                 if (line.StartsWith("SWA"))
                 {
                     line = line.Substring(line.IndexOf("=") + 1);
-                    PD.atmoShit.SWA = float.Parse(line);
+                    PD.atmoData.SWA = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("IRA"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.atmoShit.IRA = float.Parse(line);
+                    PD.atmoData.IRA = float.Parse(line);
                     continue;
                 }
+                /*
                 if (line.StartsWith("SHF"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
                     PD.SHF = float.Parse(line);
                     continue;
                 }
+                */
+                if (line.StartsWith("SH_correction"))
+                {
+                    line = line.Substring(line.IndexOf("=") + 2);
+                    PD.SH_correction = float.Parse(line);
+                    continue;
+                }
             }
 
-            PD.G = (float)(PD.body.gravParameter / (PD.body.Radius * PD.body.Radius));
 
-            file = new StreamReader(KSPUtil.ApplicationRootPath + "/GameData/KerbalWeatherSystems/BodyData/Kerbin/AtmoShit.cfg");
+            file = new StreamReader(KSPUtil.ApplicationRootPath + "/GameData/KerbalWeatherSystems/BodyData/Kerbin/AtmoData.cfg");
             while ((line = file.ReadLine()) != null)
             {
                 if (line.StartsWith("cg"))
                 {
                     line = line.Substring(line.IndexOf("=") + 1);
-                    PD.atmoShit.specificHeatGas = float.Parse(line);
+                    PD.atmoData.specificHeatGas = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("M"))
                 {
                     line = line.Substring(line.IndexOf("=") + 1);
-                    PD.atmoShit.M = float.Parse(line);
+                    PD.atmoData.M = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("k"))
                 {
                     line = line.Substring(line.IndexOf("=") + 1);
-                    PD.atmoShit.k = float.Parse(line);
+                    PD.atmoData.k = float.Parse(line);
                     continue;
                 }
             }
-            file = new StreamReader(KSPUtil.ApplicationRootPath + "/GameData/KerbalWeatherSystems/BodyData/Kerbin/DewShit.cfg");
+            file = new StreamReader(KSPUtil.ApplicationRootPath + "/GameData/KerbalWeatherSystems/BodyData/Kerbin/DewData.cfg");
             while ((line = file.ReadLine()) != null)
             {
                 if (line.StartsWith("A1"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.A1 = float.Parse(line);
+                    PD.dewData.A1 = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("A2"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.A2 = float.Parse(line);
+                    PD.dewData.A2 = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("B1"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.B1 = float.Parse(line);
+                    PD.dewData.B1 = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("B2"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.B2 = float.Parse(line);
+                    PD.dewData.B2 = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("C1"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.C1 = float.Parse(line);
+                    PD.dewData.C1 = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("C2"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.C2 = float.Parse(line);
+                    PD.dewData.C2 = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("M"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.M = float.Parse(line);
+                    PD.dewData.M = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("cg"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.cg = float.Parse(line);
+                    PD.dewData.cg = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("cl"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.cl = float.Parse(line);
+                    PD.dewData.cl = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("cs"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.cs = float.Parse(line);
+                    PD.dewData.cs = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("he"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.he = float.Parse(line);
+                    PD.dewData.he = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("hm"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.hm = float.Parse(line);
+                    PD.dewData.hm = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("hs"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.hs = float.Parse(line);
+                    PD.dewData.hs = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("dl"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.Dl = float.Parse(line);
+                    PD.dewData.Dl = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("ds"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.Ds = float.Parse(line);
+                    PD.dewData.Ds = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("T_fr"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.T_fr = float.Parse(line);
+                    PD.dewData.T_fr = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("T_m"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.T_m = float.Parse(line);
+                    PD.dewData.T_m = float.Parse(line);
                     continue;
                 }
                 if (line.StartsWith("T_b"))
                 {
                     line = line.Substring(line.IndexOf("=") + 2);
-                    PD.dewShit.T_b = float.Parse(line);
+                    PD.dewData.T_b = float.Parse(line);
                     continue;
                 }
             }
@@ -1095,9 +1096,9 @@ namespace Database
                 Logger("Kerbin Cell Data Missing");
                 return false;
             }
-            if (!File.Exists(KSPUtil.ApplicationRootPath + "/GameData/KerbalWeatherSystems/BodyData/Kerbin/DewShit.cfg"))
+            if (!File.Exists(KSPUtil.ApplicationRootPath + "/GameData/KerbalWeatherSystems/BodyData/Kerbin/DewData.cfg"))
             {
-                Logger("Kerbin Dew Shit Missing");
+                Logger("Kerbin Dew Data Missing");
                 return false;
             }
             if (!File.Exists(KSPUtil.ApplicationRootPath + "/GameData/KerbalWeatherSystems/BodyData/Kerbin/PlanetaryData.cfg"))
@@ -1105,14 +1106,14 @@ namespace Database
                 Logger("Kerbin PlanetaryData Missing");
                 return false;
             }
-            if (!File.Exists(KSPUtil.ApplicationRootPath + "/GameData/KerbalWeatherSystems/BodyData/Kerbin/AtmoShit.cfg"))
+            if (!File.Exists(KSPUtil.ApplicationRootPath + "/GameData/KerbalWeatherSystems/BodyData/Kerbin/AtmoData.cfg"))
             {
-                Logger("Kerbin Atmoshit Missing");
+                Logger("Kerbin AtmoData Missing");
                 return false;
             }
-            if (!File.Exists(KSPUtil.ApplicationRootPath + "/GameData/KerbalWeatherSystems/BodyData/Kerbin/DewShit.cfg"))
+            if (!File.Exists(KSPUtil.ApplicationRootPath + "/GameData/KerbalWeatherSystems/BodyData/Kerbin/DewData.cfg"))
             {
-                Logger("Kerbin Dewshit Missing");
+                Logger("Kerbin DewData Missing");
                 return false;
             }
             if (!File.Exists(KSPUtil.ApplicationRootPath + "/GameData/KerbalWeatherSystems/BodyData/Kerbin/Biomes/Badlands.cfg"))
