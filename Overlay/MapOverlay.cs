@@ -252,11 +252,10 @@ namespace Overlay
 
             foreach (PlanetData pd in WeatherDatabase.PlanetaryData)
             {
-                double result;
                 if (!bodyRadii.ContainsKey(pd.body))
-                    bodyRadii.Add(pd.body, 1.012);
+                    bodyRadii.Add(pd.body, bodyradius);
                 else
-                    bodyRadii[pd.body] = 1.012;
+                    bodyRadii[pd.body] = bodyradius;
             }
 
         }
@@ -337,7 +336,7 @@ namespace Overlay
         }
         private static Color32 getCellColor(int layer, Cell cell)
         {
-            double deposit = 0;
+            double? deposit = 0;
             double deposit2 = 0;
             switch(resource.Resource)
             {
