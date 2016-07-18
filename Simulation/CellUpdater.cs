@@ -168,6 +168,17 @@ namespace Simulation
             double DeltaAltitude = WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell);
             double[] DeltaDistance_Avg = new double[layerCount];
 
+            /*
+            Vector3d[] Vertex = new Vector3d[6];
+            {
+                int Index = 0;
+                foreach (Vector3d Vertices in cell.GetVertices(PD.gridLevel))
+                {
+                    Vertex[Index] = Vertices;
+                }
+            }
+            */
+
             {
                 int neighborIndex = 0;
                 foreach (Cell neighbor in cell.GetNeighbors(PD.gridLevel))
@@ -183,6 +194,7 @@ namespace Simulation
                     */
                     neighborIndex++;
                 }
+
             }
 
 
@@ -1972,6 +1984,18 @@ namespace Simulation
                         file.WriteLine("{0,-6} {1,9:E} {2,9:E} {3,12:E} {4,12:E} {5,7} {6,6} {7,9} {8,9} {9,9} {10,9} {11,9}",
                             i, DI_S[i], DI_V[i], wCell.cloud.getwaterContent(), wCell.getDropletSize(), wCell.cloud.thickness, wCell.getIsIce(), condensedDew[i], depositedDew[i], wCell.cloud.rainyDuration, wCell.cloud.rainyDecay, dropletsAsCCN[i]);
                     }
+                    file.WriteLine();
+
+                    file.WriteLine(" cell vertices");
+                    foreach (Vector3d Vertices in cell.GetVertices(PD.gridLevel))
+                    {
+                        file.Write("(");
+                        file.Write(String.Format("{0:+000.000000;-000.000000}", Vertices.x) + ", ");
+                        file.Write(String.Format("{0:+000.000000;-000.000000}", Vertices.y) + ", ");
+                        file.Write(String.Format("{0:+000.000000;-000.000000}", Vertices.z) + ") ");
+                        file.WriteLine();
+                    }
+                    file.WriteLine();
 
                 }
             }
