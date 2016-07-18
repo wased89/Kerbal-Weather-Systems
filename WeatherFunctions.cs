@@ -211,7 +211,7 @@ namespace KerbalWeatherSystems
             if (decay == 0 || duration == 0) { return Math.Abs(Size); }
             else // Size *= rate at each duration term, the series converges to an integral as returned
             {
-                double rate = (256 - decay) / 256;
+                double rate = (double)(256 - decay) / 256;
                 double intK = -1 / Math.Log(rate);  // integration constant
                 return (short)(Size * (Math.Pow(rate, (duration)) / Math.Log(rate) + intK) / (duration));
             }
@@ -221,29 +221,10 @@ namespace KerbalWeatherSystems
             if (decay == 0 || duration == 0) { return Math.Abs(Size)/1E7; }
             else // Size *= rate at each duration term, the series converges to an integral as returned
             {
-                double rate = (256 - decay) / 256;
+                double rate = (double)(256 - decay) / 256;
                 double intK = -1 / Math.Log(rate);  // integration constant
                 return (Size * (Math.Pow(rate, (duration)) / Math.Log(rate) + intK) / (duration)/1E7);
             }
-        }
-        public static uint GetCellIndex(int database, double latitude, double longitude) // provides the index of a cell, known the geographic coordinates of any point in it
-        {
-            PlanetData PD = WeatherDatabase.PlanetaryData[database];
-            double x = Math.Cos(longitude * Mathf.Deg2Rad);
-            double z = Math.Sin(longitude * Mathf.Deg2Rad);
-            double y = Math.Sin(latitude * Mathf.Deg2Rad);
-            uint index = 0;
-            double Delta = 1;
-            foreach (Cell cell in Cell.AtLevel(PD.gridLevel))
-            {
-                double newDelta = ((cell.Position.x - x) * (cell.Position.x - x) + (cell.Position.y - y) * (cell.Position.y - y) + (cell.Position.z - z) * (cell.Position.z - z));
-                if (newDelta < Delta)
-                {
-                    index = cell.Index;
-                    Delta = newDelta;
-                }
-            }
-            return index;
         }
         public static double DensityAtVessel(int database, Vessel vessel)
         {
@@ -298,7 +279,6 @@ namespace KerbalWeatherSystems
             }
             else  // stratosphere
             {
-                Debug.Log("D_Wet requested for altitude beyond tropopause");
                 return 0;
             }
         }  
