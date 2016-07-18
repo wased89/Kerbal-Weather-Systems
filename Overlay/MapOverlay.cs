@@ -538,7 +538,7 @@ namespace Overlay
             if (hoverCell != null)
             {
                 Vector2 mouse = Event.current.mousePosition;
-                Rect position = new Rect(mouse.x + 16, mouse.y + 4, 160, 32);
+                Rect position = new Rect(mouse.x + 16, mouse.y + 4, 175, 32);
                 GUILayout.Window(mouseGUID, position, mouseWindow, "KWS Debug Info~");
             }
         }
@@ -552,31 +552,11 @@ namespace Overlay
 
             GUILayout.BeginVertical();
 
-            GUILayout.Label("Cell: " + cell.Index);
+            GUILayout.Label(String.Format("Cell: {0:D5}   cycle: {1:D}", cell.Index, CellUpdater.run));
             GUILayout.Label("Lat: " + lat + " °");
             GUILayout.Label("Lon: " + lon + " °");
-            /*
-            GUILayout.Label("");
-            if (WeatherSettings.SD.MWtemperature) { GUILayout.Label("Temperature: " + WeatherFunctions.GetCellTemperature(PD.index, currentLayer, cell)); }
-            if (WeatherSettings.SD.MWpressure) { GUILayout.Label("Pressure: " + WeatherFunctions.GetCellPressure(PD.index, currentLayer, cell)); }
-            if (WeatherSettings.SD.MWRH) { GUILayout.Label("Rel Humidity: " + WeatherFunctions.GetCellRH(PD.index, currentLayer, cell) * 100); }
-            if (WeatherSettings.SD.MWdensity) { GUILayout.Label("Density: " + String.Format("{0:+0.000000}", WeatherFunctions.D_Wet(PD.index, cell, WeatherFunctions.GetCellAltitude(PD.index, currentLayer, cell)))); }
-            if (WeatherSettings.SD.MWCCN) { GUILayout.Label("CCN %: " + WeatherFunctions.GetCellCCN(PD.index, currentLayer, cell) * 100); }
-            if (WeatherSettings.SD.MWdDew) { GUILayout.Label("condensed Dew: " + WeatherFunctions.GetCellcDew(PD.index, currentLayer, cell)); }
-            if (WeatherSettings.SD.MWcDew) { GUILayout.Label("deposited Dew: " + WeatherFunctions.GetCelldDew(PD.index, currentLayer, cell)); }
-            if (WeatherSettings.SD.MWDropletSize) { GUILayout.Label("droplet Size: " + WeatherFunctions.GetCelldropletSize(PD.index, currentLayer, cell)); }
-            if (WeatherSettings.SD.MWthickness) { GUILayout.Label("cloud thickness: " + WeatherFunctions.GetCellthickness(PD.index, currentLayer, cell)); }
-            if (WeatherSettings.SD.MWrainDuration) { GUILayout.Label("rain duration: " + WeatherFunctions.GetCellrainDuration(PD.index, currentLayer, cell)); }
-            if (WeatherSettings.SD.MWrainDecay) { GUILayout.Label("rain decay: " + WeatherFunctions.GetCellrainDecay(PD.index, currentLayer, cell)); }
-            if (WeatherSettings.SD.MWwindH)
-            {
-                GUILayout.Label("wind horz: " + String.Format("{0:0.0000}", WeatherFunctions.GetCellwindH(PD.index, currentLayer, cell)));
-                GUILayout.Label("wind Dir : " + String.Format("{0:000.0}", WeatherFunctions.GetCellwindDir(PD.index, currentLayer, cell)));
-            }
-            if (WeatherSettings.SD.MWwindV) { GUILayout.Label("wind vert: " + String.Format("{0:+0.00000;-0.00000}", WeatherFunctions.GetCellwindV(PD.index, currentLayer, cell))); }
-            */
-            GUILayout.Label("Geodesic: " + Math.Sqrt(cell.Position.x * cell.Position.x + cell.Position.y * cell.Position.y + cell.Position.z * cell.Position.z));
-            GUILayout.Label("ΔTemp (KSP-KWS): " + (WeatherSimulator.GetInitTemperature(PD, currentLayer, cell) - WeatherFunctions.GetCellTemperature(PD.index, currentLayer, cell)));
+            GUILayout.Label(String.Format("Geodesic: {0:G}", Math.Sqrt(cell.Position.x * cell.Position.x + cell.Position.y * cell.Position.y + cell.Position.z * cell.Position.z)));
+            GUILayout.Label(String.Format("ΔT(KSP-KWS): {0:+0.000;-0.000}°", (WeatherSimulator.GetInitTemperature(PD, currentLayer, cell) - WeatherFunctions.GetCellTemperature(PD.index, currentLayer, cell))));
             double DDD = 0.0;
             double DDD2 = 0.0;
             int n = 0;
@@ -589,8 +569,8 @@ namespace Overlay
             }
             DDD /= n;
             DDD2 /= n;
-            GUILayout.Label("ΔDistanceδ: " + Math.Sqrt(Math.Abs(DDD2 - DDD * DDD)) / DDD);
-            GUILayout.Label("flowPChange: " + PD.LiveMap[currentLayer][cell].flowPChange);
+            GUILayout.Label(String.Format("ΔDistanceδ:  {0:0.000000}", Math.Sqrt(Math.Abs(DDD2 - DDD * DDD)) / DDD));
+            GUILayout.Label(String.Format("flowPChange: {0:+00.000;-00.000}", PD.LiveMap[currentLayer][cell].flowPChange));
             GUILayout.EndVertical();
 
         }

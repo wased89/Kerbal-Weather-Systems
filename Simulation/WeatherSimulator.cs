@@ -326,12 +326,12 @@ namespace Simulation
                     if(layer == 0)
                     {
                         wCell.pressure = (float)(PD.LiveMap[layers - 1][cell].pressure 
-                            * Math.Exp(-WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell) / (CellUpdater.UGC * PD.SH_correction / PD.atmoData.M / WeatherFunctions.G(PD.index, layer) * PD.LiveMap[layers - 1][cell].temperature)));
+                            * Math.Exp(-WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell) / (CellUpdater.UGC * PD.SH_correction / PD.atmoData.M / WeatherFunctions.G(PD.index, layer, cell) * PD.LiveMap[layers - 1][cell].temperature)));
                     }
                     else
                     {
                         wCell.pressure = (float)(tempMap[layer - 1][cell].pressure 
-                            * Math.Exp(-WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell) / (CellUpdater.UGC * PD.SH_correction / PD.atmoData.M / WeatherFunctions.G(PD.index, layer) * tempMap[layer - 1][cell].temperature)));
+                            * Math.Exp(-WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell) / (CellUpdater.UGC * PD.SH_correction / PD.atmoData.M / WeatherFunctions.G(PD.index, layer, cell) * tempMap[layer - 1][cell].temperature)));
                     }
                     
 
@@ -373,7 +373,7 @@ namespace Simulation
                         wCell.CCN = 0;
                         
                         wCell.pressure = (float)(tempMap[AltLayer-1][cell].pressure 
-                            * Math.Exp(-WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell) / (CellUpdater.UGC * PD.SH_correction / PD.atmoData.M / WeatherFunctions.G(PD.index, AltLayer) * tempMap[AltLayer - 1][cell].temperature)));
+                            * Math.Exp(-WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell) / (CellUpdater.UGC * PD.SH_correction / PD.atmoData.M / WeatherFunctions.G(PD.index, AltLayer, cell) * tempMap[AltLayer - 1][cell].temperature)));
                         wCell.relativeHumidity = (PD.biomeDatas[WeatherFunctions.GetBiome(PD.index, cell)].FLC * wCell.temperature / 288.15f) * 0.4f;
                     }
                     

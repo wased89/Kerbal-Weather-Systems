@@ -340,8 +340,12 @@ namespace KerbalWeatherSystems
         }
         public static double SH(int database, int layer, float temperature, Cell cell)
         {
+            //Mean mass of molecule Mm = M * Na (Molar mass * Avogadro constant) = M * UGC/kb (Molar mass * UniversalGasConstant / Boltzmann constant)
+            //ScaleHeight SH = R*T/g = Kb*T/(Mm*g) (https://en.wikipedia.org/wiki/Scale_height) = UGC * T / (M * g)
+            //ScaleHeight = UniversalGasConstant * Temperature / (AtmosphereMolarMass * gravity(altitude))
+            //NOTE: PD.SH_correction is applied to have the resulting pressure curve match on average with the pressure curve in KSP
             PlanetData PD = WeatherDatabase.PlanetaryData[database];
-            return CellUpdater.UGC * PD.SH_correction / PD.atmoData.M / (float)G(PD.index, layer, cell) * temperature;
+            return UGC * PD.SH_correction / PD.atmoData.M / (float)G(PD.index, layer, cell) * temperature;
         }
         public static double G(int database, int layer, Cell cell)
         {
