@@ -327,7 +327,7 @@ namespace Simulation
             {
                 WeatherCell wCellLive = PD.LiveMap[i][cell];
                 N_cond[i] = 0;
-                D_dry[i] = (wCellLive.pressure / wCellLive.temperature * PD.atmoData.M) / UGC;
+                D_dry[i] = wCellLive.pressure / (wCellLive.temperature * PD.atmoData.M) / UGC;
                 ew_eq[i] = WeatherFunctions.getEwEq(PD.index, wCellLive.temperature);
 
                 if (ew_eq[i] == 0)
@@ -1643,7 +1643,7 @@ namespace Simulation
 
             //Logger("Pressure and wind done");
             //Now we move on to precipitation
-
+            #region Precipitation
             //-----------------PRECIPITATION--------------------\\
 
             //calc condensed water
@@ -1832,6 +1832,7 @@ namespace Simulation
             #endregion
             //Logger("Droplet calcs done");
             //Logger("Cell update done");
+            #endregion
 
             #region debugLog
 

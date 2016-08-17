@@ -25,15 +25,10 @@ namespace KerbalWeatherSystems
         {
             return (float)(Math.Sqrt(Vector3d.Dot(a.Position, b.Position)) * (WeatherDatabase.PlanetaryData[database].body.Radius + altitude));
         }
-        // useless, however more efficiently done with: return new Vector3((float)cell.Position.x, (float)cell.Position.y, (float)cell.Position.z);
-        /*public static Vector3 GetTheFuckingUpVector(int database, Cell cell)
+        public static Vector3 GetTheFuckingUpVector(Cell cell)
         {
-            float latitude = GetCellLatitude(cell);
-            float longitude = GetCellLongitude(cell);
-            return new Vector3(Mathf.Cos(latitude * Mathf.Deg2Rad) * Mathf.Cos(longitude * Mathf.Deg2Rad),
-                Mathf.Sin(latitude * Mathf.Deg2Rad),Mathf.Cos(latitude*Mathf.Deg2Rad) * Mathf.Sin(longitude * Mathf.Deg2Rad));
+            return cell.Position;
         }
-        */
         public static Vector3 GetTheUpVector(float latitude, float longitude)
         {
             return new Vector3(Mathf.Cos(latitude * Mathf.Deg2Rad) * Mathf.Cos(longitude * Mathf.Deg2Rad),
@@ -112,14 +107,10 @@ namespace KerbalWeatherSystems
             WeatherCell wCell = WeatherDatabase.PlanetaryData[database].LiveMap[layer][cell];
             return (wCell.windVector - Vector3.Project(wCell.windVector, cell.Position)).magnitude;
         }
-        /* //broken with new system
-        public static double GetCellwindDir(int database, int layer, Cell cell)  //broken with new wind system
-            // Note: returns direction wind is blowing towards (North = 0, CW); however convention holds to show direction wind is blowing from (180°-windDir)
+        public static Vector3 GetCellWindDirection(int database, int layer, Cell cell)
         {
-            Vector3 wind = WeatherDatabase.PlanetaryData[database].LiveMap[layer][cell].windVector;
-            return (Mathf.Rad2Deg * Math.Atan2(wind.z, wind.x) + (wind.z < 0 ? 360.0 : 0.0));
+            return WeatherDatabase.PlanetaryData[database].LiveMap[layer][cell].windVector;
         }
-        */
         public static float GetCellWaterContent(int database, int layer, Cell cell)
         {
             return WeatherDatabase.PlanetaryData[database].LiveMap[layer][cell].cloud.getwaterContent();
@@ -163,7 +154,7 @@ namespace KerbalWeatherSystems
         public static double GetSunlightAngle(int database, Cell cell)
         {
             Vector3 cellPos = cell.Position;
-            Vector3d sunPos = WeatherDatabase.PlanetaryData[database].body.transform.InverseTransformPoint(FlightGlobals.Bodies[0].position);
+            Vector3d sunPos = WeatherDatabase.PlanetaryData[database].body.transform.InverseTransformPoint(GetSunPosition());
             Vector3d sub = sunPos - cellPos;
             sub.Normalize();
             return Mathf.Rad2Deg*Math.Acos(Mathf.Clamp(Vector3.Dot(cellPos, sub), -1f ,1f));
@@ -173,10 +164,14 @@ namespace KerbalWeatherSystems
         {
             Vector3 cellPos = Cell.Containing(WeatherDatabase.PlanetaryData[database].body.transform.TransformPoint(worldPos3D),
                 WeatherDatabase.PlanetaryData[database].gridLevel).Position;
-            Vector3d sunPos = WeatherDatabase.PlanetaryData[database].body.transform.InverseTransformPoint(FlightGlobals.Bodies[0].position);
+            Vector3d sunPos = WeatherDatabase.PlanetaryData[database].body.transform.InverseTransformPoint(GetSunPosition());
             Vector3d sub = sunPos - cellPos;
             sub.Normalize();
             return Mathf.Rad2Deg * Math.Acos(Mathf.Clamp(Vector3.Dot(cellPos, sub), -1f, 1f));
+        }
+        public static Vector3 GetSunPosition()
+        {
+            return Planetarium.fetch.Sun.position;
         }
         /*
         public static float GetCellArea(int database, int AltLayer, Cell cell)  //TODO: this holds true only for regular polygons, however hexagons often aren't
@@ -207,7 +202,7 @@ namespace KerbalWeatherSystems
         }
         public static float SphereVolume2Size(float volume)
         {
-            return (float)(Math.Pow((3d / 4d / Math.PI * volume), (1.0 / 3d)));
+            return (float)Math.Pow(3d / 4d / Math.PI * volume, 1.0 / 3d);
         }
         internal static Int16 AverageDropletSize16(Int16 Size, byte decay, UInt16 duration)
         {
@@ -226,7 +221,7 @@ namespace KerbalWeatherSystems
             {
                 double rate = (double)(256 - decay) / 256;
                 double intK = -1 / Math.Log(rate);  // integration constant
-                return (Size * (Math.Pow(rate, (duration)) / Math.Log(rate) + intK) / (duration)/1E7);
+                return (Size * (Math.Pow(rate, duration) / Math.Log(rate) + intK) / duration / 1E7);
             }
         }
         public static double DensityAtVessel(int database, Vessel vessel)
@@ -258,11 +253,11 @@ namespace KerbalWeatherSystems
             PlanetData PD = WeatherDatabase.PlanetaryData[database];
             float deltaAltitude = GetDeltaLayerAltitude(database, cell);
             float altitude= layer * deltaAltitude;
-            float altitudeRem = (float)(altitude - layer * deltaAltitude);
+            float altitudeRem = (altitude - layer * deltaAltitude);
             if (layer < PD.LiveMap.Count) // troposphere: compute density with interpolation of relativeHumidity
             {
-                float RHRate = new float();
-                float LapseRate = new float();
+                float RHRate;
+                float LapseRate;
                 if (layer < PD.LiveMap.Count - 1)
                 {
                     RHRate = (PD.LiveMap[layer][cell].relativeHumidity - PD.LiveMap[layer + 1][cell].relativeHumidity) / deltaAltitude;
@@ -315,7 +310,7 @@ namespace KerbalWeatherSystems
             double Dideal = n * M;
             double Pcorr = pressure + a * n * n;
             double Vcorr = 1 - b * n;
-            double Dcorr = (Pcorr)/temperature*M/CellUpdater.UGC*Vcorr;
+            double Dcorr = Pcorr/temperature*M/CellUpdater.UGC*Vcorr;
             error = (Dcorr - Dideal) / Dcorr;  // gives how much error is done with the ideal gas law
             return Dcorr;
         }
