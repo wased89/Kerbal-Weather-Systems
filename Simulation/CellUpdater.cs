@@ -1272,6 +1272,7 @@ namespace Simulation
                 foreach (Cell neighbor in cell.GetNeighbors(PD.gridLevel))
                 {
                     WeatherCell neighborWCell = PD.LiveMap[layer][neighbor];
+                    double deltaDistance = WeatherFunctions.GetDistanceBetweenCells(PD.index, cell, neighbor, WeatherFunctions.GetCellAltitude(PD.index, layer, cell));
                     float H_adv = 0;
                     float T_adv = 0;
                     //we need to find the negative dot product of the two vectors: cellVectors, neighborWindVector
@@ -1299,8 +1300,8 @@ namespace Simulation
                         T_adv /= 2;
                     }
 
-                    H_adv_S[layer] += H_adv;
-                    T_adv_S[layer] += T_adv;
+                    H_adv_S[layer] += (float)(H_adv / deltaDistance);
+                    T_adv_S[layer] += (float)(T_adv / deltaDistance);
                 }
                 
                 double DeltaDistance = 0;
@@ -1314,7 +1315,9 @@ namespace Simulation
                     / DeltaDistance);
 
                 T_adv_S[layer] *= (float)(DeltaTime / DeltaDistance);
-
+                
+                H_adv_S[layer] *= (float)DeltaTime;
+                T_adv_S[layer] *= (float)DeltaTime;
 
             }
 
