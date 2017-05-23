@@ -32,21 +32,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependancies\1.1\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\Dependancies\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependancies\1.1\Assembly-CSharp-firstpass.dll</HintPath>
+      <HintPath>..\Dependancies\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="GeodesicGrid, Version=1.0.5363.29417, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Dependancies\GeodesicGrid.dll</HintPath>
-    </Reference>
-    <Reference Include="KSPUtil, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependancies\1.1\KSPUtil.dll</HintPath>
     </Reference>
     <Reference Include="protobuf-net">
       <HintPath>..\Dependancies\1.1\protobuf-net.dll</HintPath>
@@ -59,7 +55,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Dependancies\1.1\UnityEngine.dll</HintPath>
+      <HintPath>..\Dependancies\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

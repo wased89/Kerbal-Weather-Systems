@@ -21,7 +21,7 @@ namespace Overlay
         private Dictionary<CelestialBody, double> bodyRadii = new Dictionary<CelestialBody, double>();
         private double bodyradius = 1.012;
         private CelestialBody body;
-        private static Func<Cell, double> heightRatio;
+        private static Func<Cell, float> heightRatio;
         private BoundsMap bounds;
         private static PlanetData PD;
         private static int mouseGUID;
@@ -494,6 +494,7 @@ namespace Overlay
                     color = new Color32(brightness, brightness, brightness, alpha1);
                     return color;
                 }
+                /*
                 if (definition.Resource.Equals("Geodesy"))
                 {
                     ratio = (float)Math.Min(((thing1 - definition.MinQuantity)) / ((definition.MaxQuantity - definition.MinQuantity)), 1);
@@ -514,7 +515,8 @@ namespace Overlay
                     color = new Color32(r, g, b, alpha);
                     return color;
                 }
-                    if (definition.Resource.Equals("Delta Temp"))
+                */
+                if (definition.Resource.Equals("Delta Temp"))
                 {
                     ratio = (float)Math.Min(((thing1 - definition.MinQuantity)) / ((definition.MaxQuantity - definition.MinQuantity)), 1);
                     val = (int)(ratio * (255 * 4));
@@ -590,14 +592,14 @@ namespace Overlay
 
             return null;
         }
-        private Func<Cell, double> getHeightRatioMap(CelestialBody body)
+        private Func<Cell, float> getHeightRatioMap(CelestialBody body)
         {
-            Func<Cell, double> heightRatioAt;
+            Func<Cell, float> heightRatioAt;
 
             try
             {
                 var bodyTerrain = TerrainData.ForBody(body, PD.gridLevel);
-                heightRatioAt = c => Math.Max(1, bodyTerrain.GetHeightRatio(c));
+                heightRatioAt = c => Mathf.Max(1, (float)bodyTerrain.GetHeightRatio(c));
             }
             catch (ArgumentException)
             {

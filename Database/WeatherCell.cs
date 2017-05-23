@@ -22,7 +22,7 @@ namespace Database
         [ProtoMember(6)]
         public CloudData cloud { get; internal set; } //15B
         [ProtoMember(7)]
-        public ProtoVector3 windVector { get; internal set; } //12B IS LOCAL TO THE CELL, NOT WORLD COORDS
+        public ProtoVector3 windVector { get; internal set; } //12B Should be in world coords
         public float flowPChange { get; internal set; }
         
         public float getDropletSize()

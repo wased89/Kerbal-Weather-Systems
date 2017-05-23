@@ -12,7 +12,7 @@ namespace Overlay
         internal static Mesh mesh;
 
         private int gridLevel = 0;
-        private Func<Cell, double> heightMap = c => 1;
+        private Func<Cell, float> heightMap = c => 1;
         private float radiusMultiplier = 1;
         private Transform target = null;
 
@@ -48,12 +48,12 @@ namespace Overlay
             SetGridLevelAndHeightMap(gridLevel, heightMap);
         }
 
-        public void SetHeightMap(Func<Cell, double> heightMap)
+        public void SetHeightMap(Func<Cell, float> heightMap)
         {
             SetGridLevelAndHeightMap(gridLevel, heightMap);
         }
 
-        public void SetGridLevelAndHeightMap(int gridLevel, Func<Cell, double> heightMap)
+        public void SetGridLevelAndHeightMap(int gridLevel, Func<Cell, float> heightMap)
         {
             if (gridLevel < 0) { throw new ArgumentOutOfRangeException("gridLevel"); }
             if (heightMap == null) { throw new ArgumentNullException("heightMap"); }
@@ -147,7 +147,8 @@ namespace Overlay
                 renderer.shadowCastingMode = ShadowCastingMode.Off;
                 renderer.receiveShadows = false;
 
-                AssetBundle AB = AssetBundle.CreateFromFile(KSPUtil.ApplicationRootPath + "/GameData/KerbalWeatherSystems/Resources/mapoverlay");
+                AssetBundle AB = AssetBundle.LoadFromFile(KSPUtil.ApplicationRootPath + "/GameData/KerbalWeatherSystems/Resources/mapoverlay");
+                
                 string[] names = AB.GetAllAssetNames();
                 var material = new Material(AB.LoadAsset<Shader>(AB.GetAllAssetNames()[0]));
 

@@ -60,18 +60,18 @@ namespace Simulation
             float[] LF = new float[layerCount]; //layer fraction for air
             float[] LFStrato = new float[stratoCount];
 
-            float[] thermalCap = new float[layerCount]; //thermal capacity includes soil and strato
+            float[] thermalCap = new float[layerCount]; //thermal capacity of layer
             float thermalCapSoil = 0f;
             float[] thermalCapStrato = new float[stratoCount];
 
-            float[] Q = new float[layerCount]; //total heat energy, includes soil and strato
+            float[] Q = new float[layerCount]; //total heat energy
             float QSoil = 0f;
             float[] QStrato = new float[stratoCount];
 
             float[] Cl_SWR = new float[layerCount]; //cloud reflectance
             float[] Cl_SWA = new float[layerCount]; //cloud absorbed
 
-            float[] CCN = new float[layerCount]; //Cloud condensation nuclei, includes soil, but no strato
+            float[] CCN = new float[layerCount]; //Cloud condensation nuclei, no strato
             float[] dropletsAsCCN = new float[layerCount];  // droplets and ice crystals in clouds acting as CCN for condensation
             //float CCNSoil = 1f;
 
@@ -79,7 +79,7 @@ namespace Simulation
             float[] Cl_IRR = new float[layerCount]; //cloud IR Reflected
 
 
-            float[] SWR = new float[layerCount]; //SW reflect, includes soil and strato
+            float[] SWR = new float[layerCount]; //SW reflect
             float SWRSoil = 0f;
             float[] SWRStrato = new float[stratoCount];
 
@@ -87,7 +87,7 @@ namespace Simulation
             float SWASoil = 0f;
             float[] SWAStrato = new float[stratoCount];
 
-            float[] SWX = new float[layerCount]; //SW Transmit, no soil, strato
+            float[] SWX = new float[layerCount]; //SW Transmit
 
             float[] SWXStrato = new float[stratoCount];
 
@@ -107,25 +107,25 @@ namespace Simulation
             float IRADSoil = 0f;
             float[] IRADStrato = new float[stratoCount];
 
-            float[] Q_cond = new float[layerCount]; //Latent heat released, soil, no strato
+            float[] Q_cond = new float[layerCount]; //Latent heat released
             float Q_cond_Soil = 0f;
 
-            float[] N_cond = new float[layerCount]; //Water condensed, no soil, no strato
-            float[] N_sscond = new float[layerCount]; //super saturated water condensed, no soil, no strato
+            float[] N_cond = new float[layerCount]; //Water condensed
+            float[] N_sscond = new float[layerCount]; //super saturated water condensed
 
             float[] depositedDew = new float[layerCount];  // amount of dew in solid state (e.g. Ice) in clouds
             float[] condensedDew = new float[layerCount];  // amount of dew in liquid state (e.g. water) in clouds
 
-            float[] N_dew = new float[layerCount]; //vapor density amount, soil, no strato
+            float[] N_dew = new float[layerCount]; //vapor density amount
 
 
-            float[] D_dew = new float[layerCount]; //density of the dew, no strato
-            float[] D_dry = new float[layerCount]; //density of dry air, no strato
-            float[] D_wet = new float[layerCount]; //density of wet air, soil, no strato?
+            float[] D_dew = new float[layerCount]; //density of the dew
+            float[] D_dry = new float[layerCount]; //density of dry air
+            float[] D_wet = new float[layerCount]; //density of wet air
 
-            float[] RH = new float[layerCount]; //updated relative humidity, no soil
-            float[] AH = new float[layerCount]; //absolute humidity, no soil
-            float[] AHDP = new float[layerCount]; //Absolute Humidity at Dew Point, no soil
+            float[] RH = new float[layerCount]; //updated relative humidity
+            float[] AH = new float[layerCount]; //absolute humidity
+            float[] AHDP = new float[layerCount]; //Absolute Humidity at Dew Point
             float[] ew_eq = new float[layerCount]; //equilibrium vapor pressure
             float[] ew = new float[layerCount]; //Partial vapor pressure
 
@@ -158,44 +158,16 @@ namespace Simulation
             double[] wsDiv = new double[layerCount];  // Total divergence wind
             double[] buoyancy = new double[layerCount]; //buoyancy stuff
             double[] DP_V = new double[layerCount]; // vertical pressure gradient
-            float[] Total_N = new float[layerCount];
-            float[] Total_E = new float[layerCount];
             float[] SH = new float[layerCount];
 
-            float k_ad = PD.atmoData.specificHeatGas / (PD.atmoData.specificHeatGas - UGC / PD.atmoData.M); // k_ad = cg/(cg - UGC/M); should also be used for the adiabatic temperature increase
+            float k_ad = PD.atmoData.specificHeatGas / (PD.atmoData.specificHeatGas - UGC / PD.atmoData.M); // used for the adiabatic temperature increase
 
             double DeltaTime = WeatherFunctions.GetDeltaTime(PD.index);
             double DeltaAltitude = WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell);
             double[] DeltaDistance_Avg = new double[layerCount];
 
-            /*
-            Vector3d[] Vertex = new Vector3d[6];
-            {
-                int Index = 0;
-                foreach (Vector3d Vertices in cell.GetVertices(PD.gridLevel))
-                {
-                    Vertex[Index] = Vertices;
-                }
-            }
-            */
+            
 
-            {
-                int neighborIndex = 0;
-                foreach (Cell neighbor in cell.GetNeighbors(PD.gridLevel))
-                {
-                    neighbors[neighborIndex] = neighbor.Index;
-                    float DeltaLon = WeatherFunctions.GetCellLongitude(neighbor) - WeatherFunctions.GetCellLongitude(cell);
-                    direction[neighborIndex] = Math.Atan2((DeltaLon > 180 ? DeltaLon - 360 : DeltaLon < -180 ? DeltaLon + 360 : DeltaLon),
-                        (WeatherFunctions.GetCellLatitude(neighbor) - latitude));
-
-                    /* NOTE: following equation has to be tested, if faster and accurate could replace the equation above. Don't delete until tested
-                    Vector3 Cross = Vector3.Cross(neighbor.Position, cell.Position);
-                    double direction[neighborIndex] = Math.Atan2(Math.Sqrt(Cross.x * Cross.x + Cross.z * Cross.z)*((Cross.z < 0 && Cross.x > 0)?-1.0:1.0), Cross.y);
-                    */
-                    neighborIndex++;
-                }
-
-            }
 
 
             // Logger("Var init complete");
@@ -203,7 +175,7 @@ namespace Simulation
             //-------------------------CLOUDS IR AND SW------------------------\\
 
             //cloud ir and sw
-            //we start at 0 here because we're going through teh air maps, not including soil or strato
+            //we start at 0 here because we're going through the air maps, not including soil or strato
             for (int i = 0; i < layerCount; i++)
             {
 
@@ -248,7 +220,7 @@ namespace Simulation
                     double sigma_ext = 3d / 2d * Cv / AverageDropletSize; // extinction coefficient for light
                     if (Math.Abs(wCell.cloud.dropletSize) > 4)
                     {
-                        sigma_ext *= (1 + (1.1 / Math.Pow((2 * Math.PI * AverageDropletSize / lambda), 2.0f / 3.0f)));
+                        sigma_ext *= 1 + (1.1 / Math.Pow(2 * Math.PI * AverageDropletSize / lambda, 2.0f / 3.0f));
                     }
                     G_co = (wCell.cloud.dropletSize < 0) ? 0.26f : 0.13f; // co-asymmetry parameter
                     tau = sigma_ext * wCell.cloud.thickness;  // optical distance in cloud
@@ -275,8 +247,8 @@ namespace Simulation
                     alpha = 4d * Math.PI * Xi / lambda;
                     sigma_abs = Bn * alpha * Cv;
                     omega_0 = 1 - (sigma_abs / sigma_ext);
-                    x = tau * Math.Sqrt(3d * (1 - omega_0) * (G_co));
-                    y = 4d * Math.Sqrt((1 - omega_0) / (3d * (G_co)));
+                    x = tau * Math.Sqrt(3d * (1 - omega_0) * G_co);
+                    y = 4d * Math.Sqrt((1 - omega_0) / (3d * G_co));
                     do
                     {
                         Cl_IRR[i] = (float)(Math.Sinh(x) / Math.Sinh(x + y));
@@ -294,7 +266,7 @@ namespace Simulation
                         ReflFunc[i] = 0f;
                     }
                     float K0_mu = (3f + 6f * WeatherFunctions.GetSunriseFactor(PD.index, cell)) / 7f;  // Henyey & Greenstein phase function for solar angle
-                    float K0_mu0 = 9f / 7f;  // phase function for observer looking directly at cloud
+                    float K0_mu0 = 1.285714285714f;  //((3+6 * 1)/7) phase function for observer looking directly at cloud
                     float p_theta = (float)((1 - (1 - G_co) * (1 - G_co)) / (4f * Math.PI) / (Math.Pow((1 + (1 - G_co) * (1 - G_co) + 2f * (1 - G_co) * WeatherFunctions.GetSunriseFactor(PD.index, cell)), (3f / 2f))));
                     float t_tau = (float)(1 / (3f / 4f * tau * (1 - WeatherFunctions.GetSunriseFactor(PD.index, cell)) + 15f / 14f));
                     float R0 = (1.48f + 7.76f * WeatherFunctions.GetSunriseFactor(PD.index, cell) + p_theta) / (4f * (WeatherFunctions.GetSunriseFactor(PD.index, cell) + 1f));
@@ -341,7 +313,7 @@ namespace Simulation
                 if ((i == 0) && (RH_Live >= 1.0f))
                 {
                     // Foggy!
-                    N_cond[i] = (RH_Live - 0.999f) * PD.dewData.M / UGC / wCellLive.temperature;
+                    N_cond[i] = (RH_Live - 0.9999f) * PD.dewData.M / UGC / wCellLive.temperature;
                     RH_Live = 0.999f;
                 }
 
@@ -399,7 +371,7 @@ namespace Simulation
                 }
                 else
                 {
-                    LF[i] = (wCellLive.pressure - PD.LiveMap[i + 1][cell].pressure) / PD.LiveMap[0][cell].pressure;
+                    LF[i] = (wCellLive.pressure - PD.LiveMap[i + 1][cell].pressure) / PD.LiveMap[0][cell].pressure; //this is 0, pls fix
                 }
                 LFStrato[stratoCount - 1] -= LF[i];
 
@@ -427,7 +399,7 @@ namespace Simulation
             {
                 thermalCapStrato[AltLayer] = PD.atmoData.specificHeatGas * PD.LiveMap[0][cell].pressure * LFStrato[AltLayer] / (float)WeatherFunctions.G(PD.index, AltLayer, cell) * WeatherSettings.SD.AtmoThCapMult;
 
-                SWRStrato[AltLayer] = 0;
+                SWRStrato[AltLayer] = 0; //short wave reflected in strato
                 SWAStrato[AltLayer] = SWT * LFStrato[AltLayer] * PD.atmoData.SWA;
                 SWXStrato[AltLayer] = SWT - SWAStrato[AltLayer];
                 if (thermalCapStrato[AltLayer] == 0)
@@ -534,7 +506,7 @@ namespace Simulation
             {
                 WeatherCell wCellLive = PD.LiveStratoMap[AltLayer][cell];
                 IRGStrato[AltLayer] = (float)PhysicsGlobals.StefanBoltzmanConstant * ToTheFourth(wCellLive.temperature) * LFStrato[AltLayer];
-                IRAUStrato[AltLayer] = (IRGtemp - IRAUtemp) * LF[AltLayer] * (PD.atmoData.IRA);
+                IRAUStrato[AltLayer] = (IRGtemp - IRAUtemp) * LF[AltLayer] * PD.atmoData.IRA;
                 IRAUtemp += IRAUStrato[AltLayer];
                 IRRStrato[AltLayer] = 0f;
                 IRGtemp += IRGStrato[AltLayer];
@@ -597,7 +569,7 @@ namespace Simulation
             float Z_dew_dT = 0;
             if (Evap > DBL_Epsilon)
             {
-                Z_dew_dT = (float)Math.Sqrt((1 / D_dew[0] - 1 / D_dry[0]) * Evap * 90000f * (DeltaTime) * WeatherFunctions.G(PD.index, 0, cell));
+                Z_dew_dT = (float)Math.Sqrt((1 / D_dew[0] - 1 / D_dry[0]) * Evap * 90000f * DeltaTime * WeatherFunctions.G(PD.index, 0, cell));
             }
             if (float.IsNaN(Z_dew_dT))
             {
@@ -621,7 +593,7 @@ namespace Simulation
                 if (AHDP[0] > AH[0])  // would otherwise be 0/0, though the limit of evap_corr for AH -> AHDP still is 0
                 {
                     AHthing = AHDP[0] - AH[0];
-                    bottomThing = 2.0 * Z_dew_dT * (AHthing);
+                    bottomThing = 2.0 * Z_dew_dT * AHthing;
                     evapThing = 1.0 - Evap * DeltaTime / bottomThing;
                     result = Evap * evapThing;
                     evap_corr = (float)result;
@@ -675,6 +647,7 @@ namespace Simulation
                 {
                     N_dew[AltLayer] = (float)(AH[AltLayer] + (AH[AltLayer - 1] / D_dry[AltLayer - 1]) * WeatherFunctions.G(PD.index, AltLayer, cell)
                         * (PD.atmoData.M - PD.dewData.M) / DeltaAltitude * DeltaTime);
+                    //                          g/m^3 + (g/m^3 / g/m^3) * m/s^2 * (g/mol - g/mol) / (delta m) * (delta s)
 
                     N_cond[AltLayer] = Mathf.Max(0, (N_dew[AltLayer] - AHDP[AltLayer]) * (wCellLive.temperature > PD.dewData.T_fr ?
                         Math.Min(1.0f, wCellLive.CCN + dropletsAsCCN[AltLayer]) : 1));
@@ -875,7 +848,7 @@ namespace Simulation
                 if (wCell.temperature < 0)
                 {
                     KWSerror = true;
-                    Logger("It's mighty chilling out here Frank" + " @ cell: " + cell.Index);
+                    Logger("It's mighty chilly out here Frank" + " @ cell: " + cell.Index);
                 }
                 PD.BufferSoilMap[cell] = wCell;
             }
@@ -886,7 +859,7 @@ namespace Simulation
                 if (wCell.temperature < 2.725)
                 {
                     KWSerror = true;
-                    Logger("It's mighty chilling out here Frank" + " @ cell: " + cell.Index);
+                    Logger("It's mighty chilly out here Frank" + " @ cell: " + cell.Index);
                 }
                 if (float.IsNaN(wCell.temperature))
                 {
@@ -936,8 +909,7 @@ namespace Simulation
                 double Pressure_eq = 0;
                 DP[layer] = new double[cell.GetNeighbors(PD.gridLevel).ToList().Count];
 
-
-                Vector3 totalPressures = new Vector3();
+                
                 Vector3 wsPressureVector = new Vector3();
                 Vector3 rotrstr = new Vector3();
                 Vector3 tensstr = new Vector3();
@@ -967,7 +939,7 @@ namespace Simulation
 
                     Vector3 cellDirUpVector = Vector3.Project(neighbor.Position - cell.Position, cell.Position);
                     Vector3 cellNeighborDirVector = (neighbor.Position - cell.Position);
-                    Vector3 cellDirVector = ((neighbor.Position - cell.Position) - Vector3.Project(neighbor.Position - cell.Position, cell.Position)) * PD.body.Radius;
+                    Vector3 cellDirVector = ((neighbor.Position - cell.Position) - Vector3.Project(neighbor.Position - cell.Position, cell.Position)) * (float)PD.body.Radius;
                     //cell to neighbor
                     //         horizontal =  total vector(horizontal, vertical) - (0, vertical) because the project gives us a vector from the given vector that lines up 
                     //with the supplied vector; cell.Position
@@ -986,28 +958,19 @@ namespace Simulation
 
                     DP[layer][n] = deltaPressure;
                     Divg[layer] += deltaPressure;
-
-                    //double CosDir = Math.Cos(direction[n]*Mathf.Deg2Rad);
-                    //double SinDir = Math.Sin(direction[n]*Mathf.Deg2Rad);
-
+                    
 
                     wsPressureVector += deltaPressure == 0 ? Vector3.zero :
                         ((float)deltaPressure * cellDirVector) / cellDirVector.sqrMagnitude;
-
-                    //wsN[layer] += (float)(deltaPressure * CosDir);
-                    //wsE[layer] += (float)(deltaPressure * SinDir);
+                    
 
                     wsDiv[layer] += neighborWindDirDot;  //NOTE: wsDiv is positive for wind exiting the current cell
                     if (cell.Index == 0)
                     {
-                        int i = 0;
+                        ;
                     }
                     rotrstr += ((neighborWindHor * neighborWindDirDot) / cellDirVector.magnitude) * (float)DeltaTime;
-                    //rotrStr[layer].x -= PD.LiveMap[layer][neighbor].windVector.x * SinDir / DeltaDistance;  // + = CW; - = CCW
-                    //rotrStr[layer].z += PD.LiveMap[layer][neighbor].windVector.z * CosDir / DeltaDistance;
                     tensstr = (((neighborWindHor - cellWindHor) * neighborWindDirDot) / cellDirVector.magnitude) * (float)DeltaTime;
-                    //tensStr[layer].x += (PD.LiveMap[layer][neighbor].windVector.x - PD.LiveMap[layer][cell].windVector.x) * Math.Abs(CosDir) / DeltaDistance;  // + = Northbound; - = Southbound 
-                    //tensStr[layer].z += (PD.LiveMap[layer][neighbor].windVector.z - PD.LiveMap[layer][cell].windVector.z) * Math.Abs(SinDir) / DeltaDistance;  // + = Eastbound; - = Westbound
 
                     n += 1;
 
@@ -1018,33 +981,17 @@ namespace Simulation
                 // float DPacc = DPInt / D_wet[layer];
 
                 double Mu = Suth_B / (wCell.temperature + Suth_S) * Math.Pow(wCell.temperature, 3d / 2d);
-
-                Total_N[layer] = wCell.windVector.x;
-                Total_E[layer] = wCell.windVector.z;
-                totalWindVector[layer] = wCell.windVector; //need to turn this into a velocity vector, probably for when total vector comes together to include vertical
+                
+                totalWindVector[layer] = wCell.windVector; 
                 // windspeed increase due to Coriolis forces
-                //Vector3d bodyAngularVelocity = PD.body.angularVelocity;
+
                 Vector3 CoriolisVector = 2 * totalWindVector[layer] * (float)PD.body.angularV * Mathf.Sin(latitude * Mathf.Deg2Rad) * (float)DeltaTime;
-                float Cor_N = (float)(2 * Total_E[layer] * PD.body.angularV * Math.Sin(latitude * Mathf.Deg2Rad) * DeltaTime);
-                float Cor_E = (float)(2 * Total_N[layer] * PD.body.angularV * Math.Sin(latitude * Mathf.Deg2Rad) * DeltaTime);
 
                 // windspeed increase due to air viscosity (decrease, but takes sign opposite to the current wind)
                 Vector3 mu_dec_vector;
-                //float Mu_dec_N = 0;  
-                //float Mu_dec_E = 0;
+
                 mu_dec_vector = (-(totalWindVector[layer] - (layer == 0 ? Vector3.zero : totalWindVector[layer - 1]))) * (float)DeltaTime * (float)Mu / D_wet[layer];
-                /*
-                if (layer == 0)
-                {
-                    //Mu_dec_N = (float)(-Total_N[layer] * DeltaTime * Mu / D_wet[layer]);
-                    //Mu_dec_E = (float)(-Total_E[layer] * DeltaTime * Mu / D_wet[layer]);
-                }
-                else
-                {
-                    //Mu_dec_N = (float)(-(Total_N[layer] - Total_N[layer - 1]) * DeltaTime * Mu / D_wet[layer]);
-                    //Mu_dec_E = (float)(-(Total_E[layer] - Total_N[layer - 1]) * DeltaTime * Mu / D_wet[layer]);
-                }
-                */
+               
                 // windspeed increase due to pressure gradient
                 Vector3 W_Vector = wsPressureVector * (float)DeltaTime / 2f / D_wet[layer];
                 //float W_N_P = wsN[layer] * (float)DeltaTime / 2f / D_wet[layer];
@@ -1052,34 +999,30 @@ namespace Simulation
 
                 // sum all the windspeed increases to the previous windspeed value
                 totalWindVector[layer] += W_Vector + CoriolisVector + mu_dec_vector + tensstr - rotrstr;
-                //Total_N[layer] += W_N_P + Cor_N + Mu_dec_N; //TODO: + (float)tensStr[layer].x - (float)rotrStr[layer].z;
-                //Total_E[layer] += W_E_P + Cor_E + Mu_dec_E; //TODO: + (float)tensStr[layer].z + (float)rotrStr[layer].x;
+                //Total_N[layer] += W_N_P + Cor_N + Mu_dec_N;
+                //Total_E[layer] += W_E_P + Cor_E + Mu_dec_E;
 
                 // Buoyancy
                 if (layer == 0)
                 {
-                    //buoyancy[0] = (D_dry[layer] - 2 * D_wet[layer] + D_wet[layer + 1] * wCell.pressure / PD.BufferMap[layer + 1][cell].pressure) * G / D_wet[layer];
                     buoyancy[0] = (D_wet[1] * wCell.pressure / PD.LiveMap[1][cell].pressure * PD.LiveMap[1][cell].temperature / wCell.temperature
                         - D_wet[0]);
                 }
                 else if (layer != layerCount - 1)
                 {
-                    //buoyancy[layer] = (D_dry[layer] - D_wet[layer] + D_wet[layer + 1] * wCell.pressure /PD.BufferMap[layer + 1][cell].pressure) * G / D_wet[layer];
                     buoyancy[layer] = ((D_wet[layer + 1] / PD.LiveMap[layer + 1][cell].pressure * PD.LiveMap[layer + 1][cell].temperature
                         + D_wet[layer - 1] / PD.LiveMap[layer - 1][cell].pressure * PD.LiveMap[layer - 1][cell].temperature)
                         * wCell.pressure / wCell.temperature - 2 * D_wet[layer]);
                 }
                 else
                 {
-                    //buoyancy[layer] = (D_dry[layer] - D_wet[layer - 1] * wCell.pressure /PD.BufferMap[layer - 1][cell].pressure) * G / D_wet[layer];
                     float D_dry_strato = PD.LiveStratoMap[0][cell].pressure * PD.atmoData.M / UGC / PD.LiveStratoMap[0][cell].temperature;
                     D_dry_strato *= wCell.pressure / PD.LiveStratoMap[0][cell].pressure * PD.LiveStratoMap[0][cell].temperature / wCell.temperature;
                     buoyancy[layer] = (D_dry_strato + D_wet[layer - 1] * wCell.pressure / PD.LiveMap[layer - 1][cell].pressure
                         * PD.LiveMap[layer - 1][cell].temperature / wCell.temperature - 2 * D_wet[layer]);
                 }
                 buoyancy[layer] *= WeatherFunctions.G(PD.index, layer, cell) / D_wet[layer] / DeltaAltitude;
-
-
+                
             }
 
             for (int layer = 0; layer < layerCount; layer++)
@@ -1103,8 +1046,8 @@ namespace Simulation
                 float wsV = (float)(wCellLive.windVector.y + (buoyancy[layer] + DP_V[layer] - (wCellLive.windVector.y 
                     * Mu / D_wet[layer]) - WsGradWs) * DeltaTime/2 + Ws_V_ana[layer]);
                     */
-                Vector3 wsVVector = cellWindUp * ((((float)buoyancy[layer] + (float)DP_V[layer] -
-                    ((float)GetCellVectorUpValue(cellWindUp, cell) * (float)Mu / D_wet[layer])) - (float)GetCellVectorUpValue(WsGradVector, cell)) * (float)DeltaTime / 2 + Ws_V_ana[layer]);
+                Vector3 wsVVector = cellWindUp * (float)(((buoyancy[layer] + DP_V[layer] -
+                    (GetCellVectorUpValue(cellWindUp, cell) * Mu / D_wet[layer])) - GetCellVectorUpValue(WsGradVector, cell)) * DeltaTime / 2 + Ws_V_ana[layer]);
 
 
                 wCell.windVector = totalWindVector[layer] + wsVVector; //new Vector3(Total_N[layer], wsV, Total_E[layer]);
@@ -1116,7 +1059,7 @@ namespace Simulation
                 // do layer below
                 if (layer > 0)
                 {
-                    Pressure_eq = (float)(PD.LiveMap[layer - 1][cell].pressure * Math.Exp((-DeltaAltitude)
+                    Pressure_eq = (float)(PD.LiveMap[layer - 1][cell].pressure * Math.Exp(-DeltaAltitude
                         / WeatherFunctions.SH(PD.index, layer, PD.LiveMap[layer - 1][cell].temperature, cell)));
                     DP_V[layer] = (float)((Pressure_eq - wCell.pressure) / (D_wet[layer - 1] * wCell.pressure
                         / PD.LiveMap[layer - 1][cell].pressure + D_wet[layer]) / 2 / DeltaAltitude);
@@ -1211,7 +1154,7 @@ namespace Simulation
                 {
                     double error = 0;
                     float D_dryStrato = (float)(WeatherFunctions.VdW(PD.atmoData, PD.LiveStratoMap[0][cell].pressure, PD.LiveStratoMap[0][cell].temperature, out error));
-                    dynPressureAbove = Vector3.Dot(wsVVector.normalized, cell.Position) < 0 ? (0.5f * D_dryStrato * wsVVector.sqrMagnitude) : 0;  // dynamic pressure due to wind with layer above
+                    dynPressureAbove = Vector3.Dot(wsVVector.normalized, cell.Position) < 0 ? 0.5f * D_dryStrato * wsVVector.sqrMagnitude : 0;  // dynamic pressure due to wind with layer above
                     double D_variance = TimeChargeV > 0 ? 1.0 : ((D_wet[layer] - D_dryStrato * TimeChargeV) / D_wet[layer]);
                     if (D_variance < 0)
                     {
@@ -1383,7 +1326,7 @@ namespace Simulation
                 else
                 {
                     ALR[layer] = -(float)WeatherFunctions.G(PD.index, layer, cell) * (1 + PD.dewData.he * 1000 * N_dew[layer] / D_dry[layer] / UGC * PD.atmoData.M / wCell.temperature)
-                     / (PD.atmoData.specificHeatGas + (PD.dewData.he * 1000 * PD.dewData.he * 1000 * N_dew[layer] / D_dry[layer] / UGC * PD.dewData.M / wCell.temperature / wCell.temperature));
+                     / (PD.atmoData.specificHeatGas + (PD.dewData.he * 1000 * PD.dewData.he * 1000 * N_dew[layer] / D_dry[layer] / (UGC * PD.dewData.M) / wCell.temperature / wCell.temperature));
                     //Saturated (moist) Adiabatic Lapse Rate
                 }
             }
@@ -1442,7 +1385,8 @@ namespace Simulation
                 }
                 float L = (216.65f - 288.15f) / PD.meanTropoHeight;
                 Vector3 wsVVector = PD.LiveMap[layer][cell].windVector - Vector3.Project(PD.LiveMap[layer][cell].windVector, cell.Position);
-                Delta_T = (float)((Delta_T / DeltaAltitude - L) * (GetCellVectorUpValue(PD.BufferMap[layer][cell].windVector, cell)) * WeatherFunctions.GetDeltaTime(PD.index) / WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell));
+                Delta_T = (float)((Delta_T / DeltaAltitude - L) * (GetCellVectorUpValue(PD.BufferMap[layer][cell].windVector, cell)) 
+                    * WeatherFunctions.GetDeltaTime(PD.index) / WeatherFunctions.GetDeltaLayerAltitude(PD.index, cell));
                 //                                       (Vector3.Dot(wsVVector, cell.Position) * wsVVector.magnitude)
 
                 /*
@@ -1516,7 +1460,7 @@ namespace Simulation
                 }
                 else
                 {
-                    SH[layer - 1] = (float)WeatherFunctions.SH(PD.index, (layer - 1), PD.BufferMap[layer - 1][cell].temperature, cell);
+                    SH[layer - 1] = (float)WeatherFunctions.SH(PD.index, layer - 1, PD.BufferMap[layer - 1][cell].temperature, cell);
                     wCell.pressure = (float)((PD.BufferMap[layer - 1][cell].pressure - dynPressure[layer - 1]) * Math.Exp(-DeltaAltitude / SH[layer - 1])) + dynPressure[layer];
                     if (float.IsNaN(wCell.pressure))
                     {
@@ -1612,7 +1556,7 @@ namespace Simulation
             {
                 WeatherCell wCell = PD.LiveMap[AltLayer][cell];
                 Q[AltLayer] = thermalCap[AltLayer] * wCell.temperature + (SWA[AltLayer] + IRAU[AltLayer] - IRG[AltLayer] + IRAD[AltLayer] + Q_cond[AltLayer])
-                                    * (float)(DeltaTime);
+                                    * (float)DeltaTime;
             }
 
             for (int AltLayer = 0; AltLayer < layerCount; AltLayer++)
@@ -1955,8 +1899,6 @@ namespace Simulation
                         file.Write(String.Format("{0:+000.000;-000.000}", wsDiv[i]) + " ");
                         file.Write(String.Format("{0:+00.000000;-00.000000}", wsN[i]) + " ");
                         file.Write(String.Format("{0:+00.000000;-00.000000}", wsE[i]) + " ");
-                        file.Write(String.Format("{0:+00.000000;-00.000000}", Total_N[i]) + " ");
-                        file.Write(String.Format("{0:+00.000000;-00.000000}", Total_E[i]) + " ");
                         file.Write(String.Format("{0:+000.000000;-000.000000}", buoyancy[i]) + " ");
                         file.Write(String.Format("{0:+000.000000;-000.000000}", DP_V[i]) + " ");
                         file.Write("(");
@@ -2046,7 +1988,7 @@ namespace Simulation
         internal static void Logger(string s)
         {
             WeatherLogger.Log("[CU]" + s);
-            if (KWSerror)
+            if(KWSerror)
             {
                 KWSerror = false;  // have a breakpoint here, then manually step out (F10 or F11)
             }

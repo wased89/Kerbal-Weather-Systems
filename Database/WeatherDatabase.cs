@@ -696,6 +696,12 @@ namespace Database
                     PD.atmoData.M = float.Parse(line);
                     continue;
                 }
+                if(line.StartsWith("spec_gas_const_dry"))
+                {
+                    line = line.Substring(line.IndexOf("=") + 1);
+                    PD.atmoData.Spec_gas_const_dry = float.Parse(line);
+                    continue;
+                }
                 if (line.StartsWith("ks"))
                 {
                     line = line.Substring(line.IndexOf("=") + 1);

@@ -238,7 +238,7 @@ namespace KerbalWeatherSystems
             }
             else
             {
-                return D_Wet(database, cell, GetLayerAtAltitude(database, (float)vessel.altitude, cell));
+                return D_Wet(database, GetLayerAtAltitude(database, (float)vessel.altitude, cell), cell);
             }
         }
         public static int GetLayerAtAltitude(int database, float altitude, Cell cell)
@@ -252,29 +252,29 @@ namespace KerbalWeatherSystems
                 return (int)(altitude / GetDeltaLayerAltitude(database, cell));
             }
         }
-        internal static double D_Wet(int database, Cell cell, int layer)  //TODO: provide public access for D_wet (at any altitude)
+        internal static double D_Wet(int database, int AltLayer, Cell cell)  //TODO: provide public access for D_wet (at any altitude)
         {  // to: find D_wet above and below required altitude; interpolate for P at that altitude and compute with P/rho^k_ad = constant (ideal gas law)
             PlanetData PD = WeatherDatabase.PlanetaryData[database];
             float deltaAltitude = GetDeltaLayerAltitude(database, cell);
-            float altitude= layer * deltaAltitude;
-            float altitudeRem = (altitude - layer * deltaAltitude);
-            if (layer < PD.LiveMap.Count) // troposphere: compute density with interpolation of relativeHumidity
+            float altitude= AltLayer * deltaAltitude;
+            float altitudeRem = (altitude - AltLayer * deltaAltitude);
+            if (AltLayer < PD.LiveMap.Count) // troposphere: compute density with interpolation of relativeHumidity
             {
                 float RHRate;
                 float LapseRate;
-                if (layer < PD.LiveMap.Count - 1)
+                if (AltLayer < PD.LiveMap.Count - 1)
                 {
-                    RHRate = (PD.LiveMap[layer][cell].relativeHumidity - PD.LiveMap[layer + 1][cell].relativeHumidity) / deltaAltitude;
-                    LapseRate = (PD.LiveMap[layer][cell].temperature - PD.LiveMap[layer + 1][cell].temperature) / deltaAltitude;
+                    RHRate = (PD.LiveMap[AltLayer][cell].relativeHumidity - PD.LiveMap[AltLayer + 1][cell].relativeHumidity) / deltaAltitude;
+                    LapseRate = (PD.LiveMap[AltLayer][cell].temperature - PD.LiveMap[AltLayer + 1][cell].temperature) / deltaAltitude;
                 }
                 else
                 {
-                    RHRate = (PD.LiveMap[layer][cell].relativeHumidity) / deltaAltitude;
-                    LapseRate = (PD.LiveMap[layer][cell].temperature - PD.LiveStratoMap[0][cell].temperature) / deltaAltitude;
+                    RHRate = (PD.LiveMap[AltLayer][cell].relativeHumidity) / deltaAltitude;
+                    LapseRate = (PD.LiveMap[AltLayer][cell].temperature - PD.LiveStratoMap[0][cell].temperature) / deltaAltitude;
                 }
-                float RHint = PD.LiveMap[layer][cell].relativeHumidity + RHRate * altitudeRem;
-                float Tint = PD.LiveMap[layer][cell].temperature + LapseRate * altitudeRem;
-                float Pint = (float)(PD.LiveMap[layer][cell].pressure * Math.Exp(-altitudeRem / (SH(PD.index, layer, Tint, cell))));
+                float RHint = PD.LiveMap[AltLayer][cell].relativeHumidity + RHRate * altitudeRem;
+                float Tint = PD.LiveMap[AltLayer][cell].temperature + LapseRate * altitudeRem;
+                float Pint = (float)(PD.LiveMap[AltLayer][cell].pressure * Math.Exp(-altitudeRem / (SH(PD.index, AltLayer, Tint, cell))));
                 double ew_eq = getEwEq(database, Tint);
                 double ew = ew_eq * RHint;
                 return ((Pint - ew) * PD.atmoData.M + ew * PD.dewData.M) / (CellUpdater.UGC * Tint);
@@ -284,7 +284,7 @@ namespace KerbalWeatherSystems
                 return 0;
             }
         }  
-        internal static float getEwEq(int database, float temperature)  // Antoine equation for water vapor pressure
+        internal static float getEwEq(int database, float temperature)  // Antoine equation for water vapor pressure, in Pa
         {
             PlanetData PD = WeatherDatabase.PlanetaryData[database];
             if (temperature >= 304)
@@ -331,6 +331,7 @@ namespace KerbalWeatherSystems
         {
             PlanetData PD = WeatherDatabase.PlanetaryData[database];
             return PD.body.gravParameter / ((PD.body.Radius + (layer * GetDeltaLayerAltitude(database, cell))) * (PD.body.Radius + (layer * GetDeltaLayerAltitude(database, cell))));
+            // m/s^2 =         m^3/s^2      /        m^2
         }
         internal static Vector3 GetHorizontalVector(int database, Cell cell, Vector3 vector) //gets the horizontal vector of a vector relative to the cell in planet space
         {

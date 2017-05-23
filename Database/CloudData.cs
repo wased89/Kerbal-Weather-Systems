@@ -12,7 +12,7 @@ namespace Database
         [ProtoMember(1)]
         public float dDew; //deposited dew in the cloud, solid state
         [ProtoMember(2)]
-        public float cDew; //condensed dew in the cloud, liquid state
+        public float cDew; //condensed dew in the cloud, liquid state 8B
         [ProtoMember(3)]
         public Int16 dropletSize; // stored as Int16, values -32768 to +32767. Divided by 1E7 to have values in tenths of microns (up to 3276.7 µm, or 3.2767 mm). Sign used to store the IsIce bool (- = true). 
         [ProtoMember(4)]
@@ -20,7 +20,7 @@ namespace Database
         [ProtoMember(5)]
         public UInt16 rainyDuration;
         [ProtoMember(6)]
-        public Byte rainyDecay; 
+        public Byte rainyDecay; //15B
         
         public float getwaterContent()
         {
